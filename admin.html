@@ -37,21 +37,25 @@
     }
 
     .admin-controls {
-      display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 12px;
-      margin-top: 15px;
-    }
+  display: grid;
+  grid-template-columns: 180px 1fr 120px;
+  gap: 12px;
+  margin-top: 15px;
+}
 
-    .admin-controls select,
-    .admin-controls input {
-      background: #101018;
-      color: white;
-      border: 1px solid #33334a;
-      border-radius: 12px;
-      padding: 13px;
-      font-size: 15px;
-    }
+    .admin-search-button {
+  background: #ff2d95;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 13px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.admin-search-button:hover {
+  filter: brightness(1.15);
+}
 
     .admin-results {
       display: grid;
@@ -792,11 +796,13 @@
         renderResults();
       });
 
-      document.getElementById("adminSearch").addEventListener("input", renderResults);
+      document.getElementById("adminSearchButton").addEventListener("click", renderResults);
 
-      renderResults();
-      renderLog();
-      renderExport();
+document.getElementById("adminSearch").addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    renderResults();
+  }
+});
     }
 
     initAdmin();
