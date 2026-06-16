@@ -27,20 +27,19 @@
   <main class="artist-page">
     <section class="artist-search-card">
       <h2>Artist Pages</h2>
-      <p>Search for any artist that has appeared on the charts.</p>
+      <p>Choose an artist that has charted at least once.</p>
 
-      <input
-        id="artistSearch"
-        class="artist-search"
-        type="text"
-        placeholder="Search artist..."
-        autocomplete="off"
-      />
-
-      <div id="artistList" class="artist-list"></div>
+      <select id="artistSelect" class="artist-select">
+        <option value="">Loading artists...</option>
+      </select>
     </section>
 
-    <section id="artistProfile" class="artist-profile"></section>
+    <section id="artistProfile" class="artist-profile">
+      <div class="artist-profile-card">
+        <h2>Choose an artist</h2>
+        <p>Select an artist from the dropdown to see their chart history.</p>
+      </div>
+    </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
