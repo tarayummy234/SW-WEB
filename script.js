@@ -16,6 +16,15 @@ const CHART_LABELS = {
   radio: "Global Airplay Chart"
 };
 
+const SHORT_CHART_LABELS = {
+  songs: "Songs",
+  albums: "Albums",
+  videos: "Videos",
+  streaming: "Streaming",
+  sales: "Sales",
+  radio: "Radio"
+};
+
 const METRIC_LABELS = {
   songs: "points",
   albums: "units",
@@ -25,8 +34,23 @@ const METRIC_LABELS = {
   radio: "audience"
 };
 
+const ARTIST_NAME_FIXES = {
+  "ariana grand": "Ariana Grande",
+  "arianna grande": "Ariana Grande"
+};
+
+const ARTIST_SPLIT_EXCEPTIONS = [
+  "Tyler, The Creator",
+  "Earth, Wind & Fire",
+  "Marina and the Diamonds",
+  "Florence + The Machine",
+  "Chloe x Halle"
+];
+
 let allRows = [];
 let validWeeks = [];
+let weekLists = {};
+let selectedArtistChart = "songs";
 
 function clean(value) {
   return value === undefined || value === null
@@ -41,6 +65,21 @@ function escapeHTML(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function escapeRegExp(value) {
+  return clean(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizeText(value) {
+  return clean(value).toLowerCase().replace(/\s+/g, " ");
+}
+
+function fixArtistName(name) {
+  const cleaned = clean(name).replace(/\s+/g, " ");
+  const key = normalizeText(cleaned);
+
+  return ARTIST_NAME_FIXES[key] || cleaned;
 }
 
 function parsePosition(value) {
@@ -117,7 +156,11 @@ function getChartType() {
 }
 
 function makeKey(title, artist) {
-  return `${clean(title).toLowerCase()}|${clean(artist).toLowerCase()}`;
+  return `${normalizeText(title)}|${normalizeText(artist)}`;
+}
+
+function makeEntryKey(item) {
+  return `${item.chartType}|${normalizeText(item.title)}|${normalizeText(item.artistRaw)}`;
 }
 
 function makeId(title, artist) {
@@ -162,6 +205,57 @@ function splitFullName(fullName) {
   };
 }
 
+function splitArtists(rawArtist) {
+  let text = clean(rawArtist).replace(/\s+/g, " ");
+
+  if (!text) return [];
+
+  const protectedNames = new Map();
+
+  ARTIST_SPLIT_EXCEPTIONS.forEach((name, index) => {
+    const token = `__ARTIST_EXCEPTION_${index}__`;
+    const regex = new RegExp(escapeRegExp(name), "gi");
+
+    if (regex.test(text)) {
+      text = text.replace(regex, token);
+      protectedNames.set(token, name);
+    }
+  });
+
+  text = text
+    .replace(/\s*\((feat\.?|ft\.?|featuring)\s+([^)]+)\)/gi, " & $2")
+    .replace(/\s+(feat\.?|ft\.?|featuring)\s+/gi, " & ")
+    .replace(/\s+with\s+/gi, " & ")
+    .replace(/\s+x\s+/gi, " & ")
+    .replace(/\s*\/\s*/g, " & ");
+
+  const parts = text
+    .split(/\s*(?:&|\+|,)\s*/)
+    .map(part => protectedNames.get(part) || part)
+    .map(fixArtistName)
+    .filter(Boolean);
+
+  const unique = [];
+
+  parts.forEach(artist => {
+    const key = normalizeText(artist);
+
+    if (!unique.some(existing => normalizeText(existing) === key)) {
+      unique.push(artist);
+    }
+  });
+
+  return unique;
+}
+
+function artistMatches(item, artist) {
+  const artistKey = normalizeText(artist);
+
+  return item.artistCredits.some(credit => {
+    return normalizeText(credit) === artistKey;
+  });
+}
+
 async function loadCSV(url, chartType) {
   const finalUrl = url.includes("?")
     ? `${url}&cache=${Date.now()}`
@@ -176,7 +270,7 @@ async function loadCSV(url, chartType) {
       const fromFullName = splitFullName(row[2]);
 
       const title = clean(row[5]) || fromFullName.title;
-      const artist = clean(row[6]) || fromFullName.artist;
+      const artistRaw = clean(row[6]) || fromFullName.artist;
 
       const metricRaw =
         chartType === "streaming" || chartType === "sales" || chartType === "radio"
@@ -192,7 +286,8 @@ async function loadCSV(url, chartType) {
         metricRaw,
         metricNumber: metricToNumber(metricRaw),
         title,
-        artist,
+        artistRaw,
+        artistCredits: splitArtists(artistRaw),
         cover: clean(row[8]),
         audio: chartType === "songs" ? clean(row[9]) : ""
       };
@@ -203,7 +298,8 @@ async function loadCSV(url, chartType) {
         !Number.isNaN(item.position) &&
         item.position > 0 &&
         item.title &&
-        item.artist
+        item.artistRaw &&
+        item.artistCredits.length > 0
       );
     });
 }
@@ -226,16 +322,32 @@ function getValidWeeks(rows) {
   return weeks.reverse();
 }
 
+function rebuildWeekLists() {
+  weekLists = {};
+
+  Object.keys(SHEETS).forEach(chartType => {
+    const rows = allRows.filter(item => item.chartType === chartType);
+    weekLists[chartType] = getValidWeeks(rows);
+  });
+}
+
+function getWeekIndex(item) {
+  const list = weekLists[item.chartType] || validWeeks || [];
+  const index = list.indexOf(item.week);
+
+  return index === -1 ? 999999 : index;
+}
+
 function getPreviousWeek(currentWeek) {
   const index = validWeeks.indexOf(currentWeek);
   return validWeeks[index + 1] || null;
 }
 
 function getMovement(currentItem, previousRows) {
-  const currentKey = makeKey(currentItem.title, currentItem.artist);
+  const currentKey = makeKey(currentItem.title, currentItem.artistRaw);
 
   const previous = previousRows.find(item => {
-    return makeKey(item.title, item.artist) === currentKey;
+    return makeKey(item.title, item.artistRaw) === currentKey;
   });
 
   const currentWeekIndex = validWeeks.indexOf(currentItem.week);
@@ -244,7 +356,7 @@ function getMovement(currentItem, previousRows) {
     const itemWeekIndex = validWeeks.indexOf(item.week);
 
     return (
-      makeKey(item.title, item.artist) === currentKey &&
+      makeKey(item.title, item.artistRaw) === currentKey &&
       itemWeekIndex > currentWeekIndex
     );
   });
@@ -262,15 +374,16 @@ function getMovementClass(movement) {
   if (movement.includes("▼")) return "down";
   if (movement === "NEW") return "new";
   if (movement === "RE-ENTRY") return "reentry";
+
   return "same";
 }
 
-function getChartRun(title, artist) {
-  const itemKey = makeKey(title, artist);
+function getChartRun(title, artistRaw) {
+  const itemKey = makeKey(title, artistRaw);
 
   const run = allRows
-    .filter(item => makeKey(item.title, item.artist) === itemKey)
-    .sort((a, b) => validWeeks.indexOf(b.week) - validWeeks.indexOf(a.week));
+    .filter(item => makeKey(item.title, item.artistRaw) === itemKey)
+    .sort((a, b) => getWeekIndex(b) - getWeekIndex(a));
 
   if (run.length === 0) {
     return `<span>No chart history found.</span>`;
@@ -281,6 +394,14 @@ function getChartRun(title, artist) {
       return `<span>${escapeHTML(item.week)}: #${escapeHTML(item.position)}</span>`;
     })
     .join("");
+}
+
+function renderArtistLinks(item) {
+  return item.artistCredits
+    .map(artist => {
+      return `<a class="artist-link" href="${artistURL(artist)}">${escapeHTML(artist)}</a>`;
+    })
+    .join(`<span class="artist-separator"> & </span>`);
 }
 
 function renderChart(week) {
@@ -307,7 +428,7 @@ function renderChart(week) {
   }
 
   limitedRows.forEach(item => {
-    const id = makeId(item.title, item.artist);
+    const id = makeId(item.title, item.artistRaw);
     const metric = formatMetric(item);
     const movement = getMovement(item, previousRows);
     const movementClass = getMovementClass(movement);
@@ -332,7 +453,7 @@ function renderChart(week) {
 
         <div class="song-info">
           <h3>${escapeHTML(item.title)}</h3>
-          <a class="artist-link" href="${artistURL(item.artist)}">${escapeHTML(item.artist)}</a>
+          <div class="artist-credit-line">${renderArtistLinks(item)}</div>
           ${metric ? `<small>${escapeHTML(metric)}</small>` : ""}
         </div>
 
@@ -342,7 +463,7 @@ function renderChart(week) {
       </article>
 
       <div class="chart-run" id="run-${id}">
-        ${getChartRun(item.title, item.artist)}
+        ${getChartRun(item.title, item.artistRaw)}
       </div>
     `;
   });
@@ -401,6 +522,7 @@ async function initChartPage() {
 
     allRows = await loadCSV(sheetUrl, chartType);
     validWeeks = getValidWeeks(allRows);
+    weekLists[chartType] = validWeeks;
 
     const select = document.getElementById("weekSelect");
 
@@ -454,22 +576,21 @@ async function loadAllArtistRows() {
   );
 
   allRows = results.flat();
-}
-
-function normalizeArtistName(name) {
-  return clean(name).toLowerCase();
+  rebuildWeekLists();
 }
 
 function getArtistNames() {
   const map = new Map();
 
   allRows.forEach(item => {
-    const name = clean(item.artist);
-    const key = normalizeArtistName(name);
+    item.artistCredits.forEach(artist => {
+      const fixed = fixArtistName(artist);
+      const key = normalizeText(fixed);
 
-    if (name && !map.has(key)) {
-      map.set(key, name);
-    }
+      if (fixed && !map.has(key)) {
+        map.set(key, fixed);
+      }
+    });
   });
 
   return Array.from(map.values()).sort((a, b) => a.localeCompare(b));
@@ -486,7 +607,7 @@ function populateArtistDropdown(selectedArtist = "") {
 
   artists.forEach(artist => {
     const selected =
-      normalizeArtistName(artist) === normalizeArtistName(selectedArtist)
+      normalizeText(artist) === normalizeText(selectedArtist)
         ? "selected"
         : "";
 
@@ -496,60 +617,128 @@ function populateArtistDropdown(selectedArtist = "") {
   });
 }
 
-function getArtistStats(artist) {
-  const artistKey = normalizeArtistName(artist);
+function getAvailableChartsForArtist(artist) {
+  return Object.keys(SHEETS).filter(chartType => {
+    return allRows.some(item => {
+      return item.chartType === chartType && artistMatches(item, artist);
+    });
+  });
+}
 
+function buildArtistEntries(artist, chartType) {
   const rows = allRows.filter(item => {
-    return normalizeArtistName(item.artist) === artistKey;
+    return item.chartType === chartType && artistMatches(item, artist);
   });
 
-  const entryMap = {};
+  const entryMap = new Map();
 
   rows.forEach(item => {
-    const key = `${item.chartType}|${makeKey(item.title, item.artist)}`;
+    const key = makeEntryKey(item);
 
-    if (!entryMap[key]) {
-      entryMap[key] = {
+    if (!entryMap.has(key)) {
+      entryMap.set(key, {
         chartType: item.chartType,
         title: item.title,
-        artist: item.artist,
+        artistRaw: item.artistRaw,
+        artistCredits: item.artistCredits,
         cover: item.cover,
-        bestPeak: item.position,
-        weeks: 0,
-        numberOne: false,
-        totalMetric: 0
-      };
+        rows: []
+      });
     }
 
-    entryMap[key].bestPeak = Math.min(entryMap[key].bestPeak, item.position);
-    entryMap[key].weeks += 1;
-    entryMap[key].numberOne = entryMap[key].numberOne || item.position === 1;
-    entryMap[key].totalMetric += item.metricNumber || 0;
+    const entry = entryMap.get(key);
 
-    if (!entryMap[key].cover && item.cover) {
-      entryMap[key].cover = item.cover;
+    entry.rows.push(item);
+
+    if (!entry.cover && item.cover) {
+      entry.cover = item.cover;
     }
   });
 
-  const entries = Object.values(entryMap).sort((a, b) => {
+  const entries = Array.from(entryMap.values()).map(entry => {
+    const rowsOldestFirst = [...entry.rows].sort((a, b) => {
+      return getWeekIndex(b) - getWeekIndex(a);
+    });
+
+    const debutRow = rowsOldestFirst[0];
+
+    const bestPeak = Math.min(...entry.rows.map(row => row.position));
+
+    const peakRows = entry.rows
+      .filter(row => row.position === bestPeak)
+      .sort((a, b) => getWeekIndex(b) - getWeekIndex(a));
+
+    const peakRow = peakRows[0];
+
+    const newestRow = [...entry.rows].sort((a, b) => {
+      return getWeekIndex(a) - getWeekIndex(b);
+    })[0];
+
+    return {
+      ...entry,
+      debutDate: debutRow ? debutRow.week : "—",
+      peakDate: peakRow ? peakRow.week : "—",
+      bestPeak,
+      weeksAtPeak: peakRows.length,
+      totalWeeks: entry.rows.length,
+      latestPosition: newestRow ? newestRow.position : "—",
+      totalMetric: entry.rows.reduce((sum, row) => sum + (row.metricNumber || 0), 0)
+    };
+  });
+
+  return entries.sort((a, b) => {
     if (a.bestPeak !== b.bestPeak) return a.bestPeak - b.bestPeak;
-    return b.weeks - a.weeks;
+    if (b.weeksAtPeak !== a.weeksAtPeak) return b.weeksAtPeak - a.weeksAtPeak;
+    if (b.totalWeeks !== a.totalWeeks) return b.totalWeeks - a.totalWeeks;
+    return b.totalMetric - a.totalMetric;
   });
+}
 
-  const chartsAppeared = [...new Set(rows.map(item => item.chartType))];
+function getArtistStats(artist, chartType) {
+  const entries = buildArtistEntries(artist, chartType);
+  const totalChartWeeks = entries.reduce((sum, entry) => sum + entry.totalWeeks, 0);
+  const numberOnes = entries.filter(entry => entry.bestPeak === 1).length;
+  const bestPeak = entries.length ? Math.min(...entries.map(entry => entry.bestPeak)) : "—";
 
   return {
-    rows,
     entries,
-    totalEntries: entries.length,
-    totalWeeks: rows.length,
-    bestPeak: rows.length ? Math.min(...rows.map(item => item.position)) : "—",
-    numberOnes: entries.filter(item => item.numberOne).length,
-    chartsAppeared
+    numberOnes,
+    chartDebuts: entries.length,
+    totalChartWeeks,
+    bestPeak
   };
 }
 
-function renderArtistProfile(artist) {
+function updateArtistURL(artist, chartType) {
+  if (!artist) {
+    window.history.replaceState({}, "", "artists.html");
+    return;
+  }
+
+  const url = `artists.html?artist=${encodeURIComponent(artist)}&chart=${encodeURIComponent(chartType)}`;
+  window.history.replaceState({}, "", url);
+}
+
+function renderArtistChartButtons(artist, activeChartType) {
+  const availableCharts = getAvailableChartsForArtist(artist);
+
+  if (availableCharts.length === 0) return "";
+
+  return `
+    <div class="artist-chart-tabs">
+      ${availableCharts.map(chartType => `
+        <button
+          class="artist-chart-tab ${chartType === activeChartType ? "active" : ""}"
+          data-artist-chart="${escapeHTML(chartType)}"
+        >
+          ${escapeHTML(SHORT_CHART_LABELS[chartType] || chartType)}
+        </button>
+      `).join("")}
+    </div>
+  `;
+}
+
+function renderArtistProfile(artist, chartType = selectedArtistChart) {
   const profile = document.getElementById("artistProfile");
 
   if (!profile) return;
@@ -565,9 +754,9 @@ function renderArtistProfile(artist) {
     return;
   }
 
-  const stats = getArtistStats(artist);
+  const availableCharts = getAvailableChartsForArtist(artist);
 
-  if (stats.rows.length === 0) {
+  if (availableCharts.length === 0) {
     profile.innerHTML = `
       <div class="artist-profile-card">
         <h2>Artist not found</h2>
@@ -578,62 +767,88 @@ function renderArtistProfile(artist) {
     return;
   }
 
-  const topEntries = stats.entries.slice(0, 50);
+  if (!availableCharts.includes(chartType)) {
+    chartType = availableCharts[0];
+  }
+
+  selectedArtistChart = chartType;
+
+  const stats = getArtistStats(artist, chartType);
+  const chartLabel = CHART_LABELS[chartType] || chartType;
 
   profile.innerHTML = `
     <div class="artist-profile-card">
       <h2>${escapeHTML(artist)}</h2>
-      <p class="artist-subtitle">
-        Appeared on ${stats.chartsAppeared.map(chart => CHART_LABELS[chart] || chart).join(", ")}
-      </p>
+      <p class="artist-subtitle">Viewing ${escapeHTML(chartLabel)}</p>
+
+      ${renderArtistChartButtons(artist, chartType)}
 
       <div class="artist-stats-grid">
         <div>
-          <strong>#${escapeHTML(stats.bestPeak)}</strong>
-          <span>Best Peak</span>
+          <strong>${escapeHTML(stats.numberOnes)}</strong>
+          <span>Different #1s</span>
         </div>
 
         <div>
-          <strong>${escapeHTML(stats.totalEntries)}</strong>
-          <span>Total Entries</span>
+          <strong>${escapeHTML(stats.chartDebuts)}</strong>
+          <span>Chart Debuts</span>
         </div>
 
         <div>
-          <strong>${escapeHTML(stats.totalWeeks)}</strong>
+          <strong>${escapeHTML(stats.totalChartWeeks)}</strong>
           <span>Total Chart Weeks</span>
         </div>
 
         <div>
-          <strong>${escapeHTML(stats.numberOnes)}</strong>
-          <span>#1 Entries</span>
+          <strong>#${escapeHTML(stats.bestPeak)}</strong>
+          <span>Best Peak</span>
         </div>
       </div>
 
-      <h3>Chart History</h3>
+      <h3>Best Performing Entries</h3>
 
       <div class="artist-entry-list">
-        ${topEntries.map(entry => `
-          <article class="artist-entry">
-            ${
-              entry.cover
-                ? `<img src="${escapeHTML(entry.cover)}" alt="${escapeHTML(entry.title)} cover" onerror="this.style.display='none'">`
-                : `<div class="artist-entry-cover"></div>`
-            }
+        ${
+          stats.entries.length
+            ? stats.entries.map(entry => `
+              <article class="artist-entry">
+                ${
+                  entry.cover
+                    ? `<img src="${escapeHTML(entry.cover)}" alt="${escapeHTML(entry.title)} cover" onerror="this.style.display='none'">`
+                    : `<div class="artist-entry-cover"></div>`
+                }
 
-            <div>
-              <h4>${escapeHTML(entry.title)}</h4>
-              <p>${escapeHTML(CHART_LABELS[entry.chartType] || entry.chartType)}</p>
-            </div>
+                <div class="artist-entry-main">
+                  <h4>${escapeHTML(entry.title)}</h4>
+                  <p>${escapeHTML(entry.artistRaw)}</p>
 
-            <div class="artist-entry-numbers">
-              <strong>#${escapeHTML(entry.bestPeak)}</strong>
-              <span>${escapeHTML(entry.weeks)} weeks</span>
-            </div>
-          </article>
-        `).join("")}
+                  <div class="artist-entry-dates">
+                    <span>Debut: ${escapeHTML(entry.debutDate)}</span>
+                    <span>Peak date: ${escapeHTML(entry.peakDate)}</span>
+                  </div>
+                </div>
+
+                <div class="artist-entry-numbers">
+                  <strong>#${escapeHTML(entry.bestPeak)}</strong>
+                  <span>${escapeHTML(entry.weeksAtPeak)} weeks at peak</span>
+                  <span>${escapeHTML(entry.totalWeeks)} total weeks</span>
+                </div>
+              </article>
+            `).join("")
+            : `<p class="empty-message">No entries found for this chart.</p>`
+        }
       </div>
     </div>
   `;
+
+  document.querySelectorAll(".artist-chart-tab").forEach(button => {
+    button.addEventListener("click", () => {
+      const nextChart = button.dataset.artistChart;
+      selectedArtistChart = nextChart;
+      updateArtistURL(artist, nextChart);
+      renderArtistProfile(artist, nextChart);
+    });
+  });
 }
 
 async function initArtistPage() {
@@ -646,26 +861,26 @@ async function initArtistPage() {
 
     const params = new URLSearchParams(window.location.search);
     const selectedArtist = params.get("artist") || "";
+    const selectedChart = params.get("chart") || "songs";
+
+    selectedArtistChart = selectedChart;
 
     populateArtistDropdown(selectedArtist);
 
     if (selectedArtist) {
-      renderArtistProfile(selectedArtist);
+      renderArtistProfile(selectedArtist, selectedChart);
     } else {
       renderArtistProfile("");
     }
 
     artistSelect.addEventListener("change", () => {
       const artist = artistSelect.value;
+      const availableCharts = artist ? getAvailableChartsForArtist(artist) : [];
+      const firstChart = availableCharts[0] || "songs";
 
-      if (artist) {
-        const newUrl = `artists.html?artist=${encodeURIComponent(artist)}`;
-        window.history.replaceState({}, "", newUrl);
-      } else {
-        window.history.replaceState({}, "", "artists.html");
-      }
-
-      renderArtistProfile(artist);
+      selectedArtistChart = firstChart;
+      updateArtistURL(artist, firstChart);
+      renderArtistProfile(artist, firstChart);
     });
   } catch (error) {
     const profile = document.getElementById("artistProfile");
