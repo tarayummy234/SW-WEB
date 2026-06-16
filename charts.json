@@ -1,0 +1,39 @@
+{
+  "songs": {
+    "name": "Songs Chart",
+    "songs": [
+      {
+        "position": 1,
+        "title": "Example Song",
+        "artist": "Example Artist",
+        "cover": "https://via.placeholder.com/300"
+      },
+      {
+        "position": 2,
+        "title": "Another Song",
+        "artist": "Another Artist",
+        "cover": "https://via.placeholder.com/300"
+      }
+    ]
+  },
+  "albums": {
+    "name": "Albums Chart",
+    "songs": []
+  },
+  "streaming": {
+    "name": "Streaming Chart",
+    "songs": []
+  },
+  "sales": {
+    "name": "Sales Chart",
+    "songs": []
+  },
+  "radio": {
+    "name": "Radio Chart",
+    "songs": []
+  },
+  "videos": {
+    "name": "Music Videos Chart",
+    "songs": []
+  }
+}
