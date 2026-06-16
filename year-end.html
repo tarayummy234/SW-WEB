@@ -428,85 +428,113 @@
     }
 
     function buildYearEndEntries(chartType, year) {
-      const rows = yearEndRows.filter(item => {
-        return item.chartType === chartType && item.year === year;
-      });
+  const rowsInSelectedYear = yearEndRows.filter(item => {
+    return item.chartType === chartType && item.year === year;
+  });
 
-      const map = new Map();
+  const map = new Map();
 
-      rows.forEach(item => {
-        const key = makeEntryKey(item);
+  rowsInSelectedYear.forEach(item => {
+    const key = makeEntryKey(item);
 
-        if (!map.has(key)) {
-          map.set(key, {
-            chartType: item.chartType,
-            title: item.title,
-            artistRaw: item.artistRaw,
-            cover: item.cover,
-            rows: []
-          });
-        }
-
-        const entry = map.get(key);
-
-        entry.rows.push(item);
-
-        if (!entry.cover && item.cover) {
-          entry.cover = item.cover;
-        }
-      });
-
-      const entries = Array.from(map.values()).map(entry => {
-        const rowsNewestFirst = [...entry.rows].sort((a, b) => {
-          return getWeekIndex(a) - getWeekIndex(b);
-        });
-
-        const rowsOldestFirst = [...entry.rows].sort((a, b) => {
-          return getWeekIndex(b) - getWeekIndex(a);
-        });
-
-        const bestPeak = Math.min(...entry.rows.map(row => row.position));
-
-        const peakRows = entry.rows
-          .filter(row => row.position === bestPeak)
-          .sort((a, b) => getWeekIndex(b) - getWeekIndex(a));
-
-        const totalMetric = entry.rows.reduce((sum, row) => sum + (row.metricNumber || 0), 0);
-        const totalScore = entry.rows.reduce((sum, row) => sum + (row.chartScore || 0), 0);
-
-        return {
-          ...entry,
-          totalMetric,
-          totalScore,
-          bestPeak,
-          totalWeeks: entry.rows.length,
-          firstWeek: rowsOldestFirst[0] ? rowsOldestFirst[0].week : "—",
-          lastWeek: rowsNewestFirst[0] ? rowsNewestFirst[0].week : "—",
-          peakDate: peakRows[0] ? peakRows[0].week : "—",
-          weeksAtPeak: peakRows.length,
-          hitNumberOne: bestPeak === 1
-        };
-      });
-
-      const hasMetric = entries.some(entry => entry.totalMetric > 0);
-
-      return entries.sort((a, b) => {
-        if (hasMetric && b.totalMetric !== a.totalMetric) {
-          return b.totalMetric - a.totalMetric;
-        }
-
-        if (b.totalScore !== a.totalScore) {
-          return b.totalScore - a.totalScore;
-        }
-
-        if (a.bestPeak !== b.bestPeak) {
-          return a.bestPeak - b.bestPeak;
-        }
-
-        return b.totalWeeks - a.totalWeeks;
+    if (!map.has(key)) {
+      map.set(key, {
+        chartType: item.chartType,
+        title: item.title,
+        artistRaw: item.artistRaw,
+        cover: item.cover,
+        rowsInYear: []
       });
     }
 
+    const entry = map.get(key);
+
+    entry.rowsInYear.push(item);
+
+    if (!entry.cover && item.cover) {
+      entry.cover = item.cover;
+    }
+  });
+
+  const entries = Array.from(map.values()).map(entry => {
+    const entryKey = `${entry.chartType}|${normalize(entry.title)}|${normalize(entry.artistRaw)}`;
+
+    const allChartRowsForEntry = yearEndRows.filter(row => {
+      const rowKey = `${row.chartType}|${normalize(row.title)}|${normalize(row.artistRaw)}`;
+      return rowKey === entryKey;
+    });
+
+    const rowsInYearNewestFirst = [...entry.rowsInYear].sort((a, b) => {
+      return getWeekIndex(a) - getWeekIndex(b);
+    });
+
+    const rowsInYearOldestFirst = [...entry.rowsInYear].sort((a, b) => {
+      return getWeekIndex(b) - getWeekIndex(a);
+    });
+
+    const allRowsNewestFirst = [...allChartRowsForEntry].sort((a, b) => {
+      return getWeekIndex(a) - getWeekIndex(b);
+    });
+
+    const allRowsOldestFirst = [...allChartRowsForEntry].sort((a, b) => {
+      return getWeekIndex(b) - getWeekIndex(a);
+    });
+
+    const chartPeak = Math.min(...allChartRowsForEntry.map(row => row.position));
+
+    const peakRows = allChartRowsForEntry
+      .filter(row => row.position === chartPeak)
+      .sort((a, b) => getWeekIndex(b) - getWeekIndex(a));
+
+    const totalMetricInYear = entry.rowsInYear.reduce((sum, row) => {
+      return sum + (row.metricNumber || 0);
+    }, 0);
+
+    const totalScoreInYear = entry.rowsInYear.reduce((sum, row) => {
+      return sum + (row.chartScore || 0);
+    }, 0);
+
+    return {
+      ...entry,
+
+      totalMetric: totalMetricInYear,
+      totalScore: totalScoreInYear,
+
+      chartPeak,
+      peakDate: peakRows[0] ? peakRows[0].week : "—",
+      weeksAtPeak: peakRows.length,
+      totalChartWeeks: allChartRowsForEntry.length,
+
+      firstCharted: allRowsOldestFirst[0] ? allRowsOldestFirst[0].week : "—",
+      lastCharted: allRowsNewestFirst[0] ? allRowsNewestFirst[0].week : "—",
+
+      firstWeekInYear: rowsInYearOldestFirst[0] ? rowsInYearOldestFirst[0].week : "—",
+      lastWeekInYear: rowsInYearNewestFirst[0] ? rowsInYearNewestFirst[0].week : "—",
+      totalWeeksInYear: entry.rowsInYear.length,
+
+      hitNumberOne: chartPeak === 1
+    };
+  });
+
+  const hasMetric = entries.some(entry => entry.totalMetric > 0);
+
+  return entries.sort((a, b) => {
+    if (hasMetric && b.totalMetric !== a.totalMetric) {
+      return b.totalMetric - a.totalMetric;
+    }
+
+    if (b.totalScore !== a.totalScore) {
+      return b.totalScore - a.totalScore;
+    }
+
+    if (a.chartPeak !== b.chartPeak) {
+      return a.chartPeak - b.chartPeak;
+    }
+
+    return b.totalWeeksInYear - a.totalWeeksInYear;
+  });
+}
+    
     function renderYearEndStats(entries, chartType, year) {
       const statsBox = document.getElementById("yearEndStats");
 
