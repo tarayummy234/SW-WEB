@@ -503,3 +503,161 @@ nav a:hover {
     text-align: left;
   }
 }
+
+.artist-link {
+  display: inline-block;
+  color: #bbb;
+  text-decoration: none;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+.artist-link:hover {
+  color: #ff2d95;
+  text-decoration: underline;
+}
+
+.movement.up {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.movement.down {
+  color: #ff4d4d;
+  font-weight: bold;
+}
+
+.movement.same {
+  color: #aaa;
+  font-weight: bold;
+}
+
+.movement.new,
+.movement.reentry {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.artist-page {
+  max-width: 1000px;
+}
+
+.artist-search-card,
+.artist-profile-card {
+  background: #181824;
+  border-radius: 18px;
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.artist-search-card h2,
+.artist-profile-card h2 {
+  margin-top: 0;
+}
+
+.artist-search-card p,
+.artist-profile-card p,
+.artist-subtitle {
+  color: #bbb;
+}
+
+.artist-select {
+  width: 100%;
+  background: #101018;
+  color: white;
+  border: 1px solid #33334a;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 16px;
+  margin-top: 12px;
+}
+
+.artist-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 22px 0;
+}
+
+.artist-stats-grid div {
+  background: #101018;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+}
+
+.artist-stats-grid strong {
+  display: block;
+  font-size: 28px;
+  color: #ff2d95;
+}
+
+.artist-stats-grid span {
+  color: #bbb;
+  font-size: 13px;
+}
+
+.artist-entry-list {
+  display: grid;
+  gap: 12px;
+}
+
+.artist-entry {
+  display: grid;
+  grid-template-columns: 60px 1fr 90px;
+  gap: 14px;
+  align-items: center;
+  background: #101018;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.artist-entry img,
+.artist-entry-cover {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  object-fit: cover;
+  background: #2a2a38;
+}
+
+.artist-entry h4 {
+  margin: 0 0 4px;
+}
+
+.artist-entry p {
+  margin: 0;
+  color: #bbb;
+  font-size: 14px;
+}
+
+.artist-entry-numbers {
+  text-align: right;
+}
+
+.artist-entry-numbers strong {
+  display: block;
+  color: #ff2d95;
+  font-size: 22px;
+}
+
+.artist-entry-numbers span {
+  color: #bbb;
+  font-size: 13px;
+}
+
+@media (max-width: 700px) {
+  .artist-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .artist-entry {
+    grid-template-columns: 55px 1fr;
+  }
+
+  .artist-entry-numbers {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
