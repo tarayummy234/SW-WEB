@@ -1,0 +1,79 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b0b0f;
+  color: white;
+}
+
+header {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #ff2d95, #7b2cff);
+}
+
+header h1 {
+  margin: 0;
+  font-size: 48px;
+}
+
+nav {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 20px;
+  background: #15151d;
+}
+
+button {
+  background: #ff2d95;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+button:hover {
+  background: #7b2cff;
+}
+
+main {
+  max-width: 900px;
+  margin: auto;
+  padding: 30px 20px;
+}
+
+.song {
+  display: grid;
+  grid-template-columns: 60px 70px 1fr;
+  align-items: center;
+  gap: 15px;
+  background: #181824;
+  margin-bottom: 12px;
+  padding: 14px;
+  border-radius: 16px;
+}
+
+.position {
+  font-size: 28px;
+  font-weight: bold;
+  color: #ff2d95;
+}
+
+.cover {
+  width: 65px;
+  height: 65px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.title {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.artist {
+  color: #bbb;
+}
