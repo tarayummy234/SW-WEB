@@ -1248,3 +1248,141 @@ nav a:hover {
     grid-column: 1 / -1;
   }
 }
+
+.year-end-card-clean {
+  grid-template-columns: 70px 92px 1fr;
+  align-items: start;
+  gap: 18px;
+  padding: 18px;
+}
+
+.year-end-card-clean .year-end-rank {
+  background: #101018;
+  border-radius: 14px;
+  padding: 14px 0;
+  font-size: 24px;
+}
+
+.year-end-card-clean .year-end-cover {
+  width: 92px;
+  height: 92px;
+}
+
+.year-end-title-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.year-end-title-row h3 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.year-end-total-pill {
+  background: #101018;
+  border: 1px solid #33334a;
+  border-radius: 14px;
+  padding: 10px 14px;
+  min-width: 140px;
+  text-align: right;
+}
+
+.year-end-total-pill span {
+  display: block;
+  color: #aaa;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+
+.year-end-total-pill strong {
+  color: #ff2d95;
+  font-size: 18px;
+}
+
+.year-end-stat-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.year-end-stat-strip div {
+  background: #101018;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.year-end-stat-strip strong {
+  display: block;
+  color: white;
+  font-size: 20px;
+}
+
+.year-end-stat-strip span {
+  display: block;
+  color: #aaa;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.year-end-dates-clean {
+  margin-top: 12px;
+}
+
+.year-end-dates-clean span {
+  background: #222231;
+}
+
+@media (max-width: 850px) {
+  .year-end-card-clean {
+    grid-template-columns: 54px 72px 1fr;
+  }
+
+  .year-end-card-clean .year-end-cover {
+    width: 72px;
+    height: 72px;
+  }
+
+  .year-end-title-row {
+    grid-template-columns: 1fr;
+  }
+
+  .year-end-total-pill {
+    text-align: left;
+    min-width: unset;
+  }
+
+  .year-end-stat-strip {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .year-end-card-clean {
+    grid-template-columns: 48px 64px 1fr;
+    gap: 12px;
+  }
+
+  .year-end-card-clean .year-end-rank {
+    font-size: 18px;
+    padding: 10px 0;
+  }
+
+  .year-end-card-clean .year-end-cover {
+    width: 64px;
+    height: 64px;
+  }
+
+  .year-end-title-row h3 {
+    font-size: 18px;
+  }
+
+  .year-end-stat-strip,
+  .year-end-dates-clean {
+    grid-column: 1 / -1;
+  }
+}
