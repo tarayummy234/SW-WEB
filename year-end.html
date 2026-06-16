@@ -536,92 +536,120 @@
 }
     
     function renderYearEndStats(entries, chartType, year) {
-      const statsBox = document.getElementById("yearEndStats");
+  const statsBox = document.getElementById("yearEndStats");
 
-      if (!statsBox) return;
+  if (!statsBox) return;
 
-      const totalEntries = entries.length;
-      const totalWeeks = entries.reduce((sum, entry) => sum + entry.totalWeeks, 0);
-      const numberOnes = entries.filter(entry => entry.hitNumberOne).length;
-      const chartLabel = YEAR_END_CHART_LABELS[chartType] || chartType;
+  const totalEntries = entries.length;
+  const weeksCountedThisYear = entries.reduce((sum, entry) => {
+    return sum + entry.totalWeeksInYear;
+  }, 0);
 
-      statsBox.innerHTML = `
-        <div>
-          <strong>${escapeHTML(totalEntries)}</strong>
-          <span>Year-End Entries</span>
-        </div>
+  const numberOnes = entries.filter(entry => entry.hitNumberOne).length;
+  const chartLabel = YEAR_END_CHART_LABELS[chartType] || chartType;
 
-        <div>
-          <strong>${escapeHTML(numberOnes)}</strong>
-          <span>Reached #1</span>
-        </div>
+  statsBox.innerHTML = `
+    <div>
+      <strong>${escapeHTML(totalEntries)}</strong>
+      <span>Year-End Entries</span>
+    </div>
 
-        <div>
-          <strong>${escapeHTML(totalWeeks)}</strong>
-          <span>Total Chart Weeks</span>
-        </div>
+    <div>
+      <strong>${escapeHTML(numberOnes)}</strong>
+      <span>Entries That Hit #1</span>
+    </div>
 
-        <div>
-          <strong>${escapeHTML(year)}</strong>
-          <span>${escapeHTML(chartLabel)}</span>
-        </div>
-      `;
-    }
+    <div>
+      <strong>${escapeHTML(weeksCountedThisYear)}</strong>
+      <span>Weeks Counted This Year</span>
+    </div>
 
+    <div>
+      <strong>${escapeHTML(year)}</strong>
+      <span>${escapeHTML(chartLabel)}</span>
+    </div>
+  `;
+}
+    
     function renderYearEndChart() {
-      const list = document.getElementById("yearEndList");
+  const list = document.getElementById("yearEndList");
 
-      if (!list) return;
+  if (!list) return;
 
-      const entries = buildYearEndEntries(activeYearEndChart, activeYear);
+  const entries = buildYearEndEntries(activeYearEndChart, activeYear);
 
-      renderYearEndStats(entries, activeYearEndChart, activeYear);
+  renderYearEndStats(entries, activeYearEndChart, activeYear);
 
-      if (entries.length === 0) {
-        list.innerHTML = `
-          <div class="year-end-empty">
-            <h3>No entries found.</h3>
-            <p>This chart does not have data for ${escapeHTML(activeYear)}.</p>
-          </div>
-        `;
+  if (entries.length === 0) {
+    list.innerHTML = `
+      <div class="year-end-empty">
+        <h3>No entries found.</h3>
+        <p>This chart does not have data for ${escapeHTML(activeYear)}.</p>
+      </div>
+    `;
 
-        return;
-      }
+    return;
+  }
 
-      list.innerHTML = entries.map((entry, index) => {
-        const totalDisplay = formatTotalMetric(entry.totalMetric, entry.chartType, entry.totalScore);
+  list.innerHTML = entries.map((entry, index) => {
+    const totalDisplay = formatTotalMetric(entry.totalMetric, entry.chartType, entry.totalScore);
 
-        return `
-          <article class="year-end-card">
-            <div class="year-end-rank">#${index + 1}</div>
+    return `
+      <article class="year-end-card year-end-card-clean">
+        <div class="year-end-rank">#${index + 1}</div>
 
-            ${
-              entry.cover
-                ? `<img class="year-end-cover" src="${escapeHTML(entry.cover)}" alt="${escapeHTML(entry.title)} cover" onerror="this.style.display='none'">`
-                : `<div class="year-end-cover placeholder"></div>`
-            }
+        ${
+          entry.cover
+            ? `<img class="year-end-cover" src="${escapeHTML(entry.cover)}" alt="${escapeHTML(entry.title)} cover" onerror="this.style.display='none'">`
+            : `<div class="year-end-cover placeholder"></div>`
+        }
 
-            <div class="year-end-main">
+        <div class="year-end-main">
+          <div class="year-end-title-row">
+            <div>
               <h3>${escapeHTML(entry.title)}</h3>
               <div class="year-end-artists">${renderArtistLinks(entry.artistRaw)}</div>
-
-              <div class="year-end-details">
-                <span>Total: ${escapeHTML(totalDisplay)}</span>
-                <span>Peak: #${escapeHTML(entry.bestPeak)}</span>
-                <span>${escapeHTML(entry.totalWeeks)} weeks</span>
-              </div>
-
-              <div class="year-end-dates">
-                <span>First in year: ${escapeHTML(entry.firstWeek)}</span>
-                <span>Last in year: ${escapeHTML(entry.lastWeek)}</span>
-                <span>Peak date: ${escapeHTML(entry.peakDate)}</span>
-                <span>${escapeHTML(entry.weeksAtPeak)} weeks at peak</span>
-              </div>
             </div>
-          </article>
-        `;
-      }).join("");
-    }
+
+            <div class="year-end-total-pill">
+              <span>Year total</span>
+              <strong>${escapeHTML(totalDisplay)}</strong>
+            </div>
+          </div>
+
+          <div class="year-end-stat-strip">
+            <div>
+              <strong>#${escapeHTML(entry.chartPeak)}</strong>
+              <span>Chart peak</span>
+            </div>
+
+            <div>
+              <strong>${escapeHTML(entry.totalChartWeeks)}</strong>
+              <span>Total chart weeks</span>
+            </div>
+
+            <div>
+              <strong>${escapeHTML(entry.weeksAtPeak)}</strong>
+              <span>Weeks at peak</span>
+            </div>
+
+            <div>
+              <strong>${escapeHTML(entry.totalWeeksInYear)}</strong>
+              <span>Weeks in ${escapeHTML(activeYear)}</span>
+            </div>
+          </div>
+
+          <div class="year-end-dates year-end-dates-clean">
+            <span>Debut: ${escapeHTML(entry.firstCharted)}</span>
+            <span>Peak date: ${escapeHTML(entry.peakDate)}</span>
+            <span>Last charted: ${escapeHTML(entry.lastCharted)}</span>
+            <span>Year range: ${escapeHTML(entry.firstWeekInYear)} — ${escapeHTML(entry.lastWeekInYear)}</span>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("");
+}
 
     function activateYearEndControls() {
       const yearSelect = document.getElementById("yearSelect");
