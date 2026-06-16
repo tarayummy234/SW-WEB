@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Songs Chart | Open Door</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Open Door Charts</h1>
+    <p>Songs Chart</p>
+  </header>
+
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="songs.html">Songs</a>
+  </nav>
+
+  <main class="chart-page">
+    <div class="chart-top">
+      <div>
+        <h2>Songs Chart</h2>
+        <p id="chartCount">Loading chart...</p>
+      </div>
+
+      <select id="weekSelect">
+        <option>Loading...</option>
+      </select>
+    </div>
+
+    <div id="chart"></div>
+  </main>
+
+  <audio id="audioPlayer"></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
