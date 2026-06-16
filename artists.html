@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Artists | Open Door</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-page="artists">
+  <header class="site-header">
+    <h1>Open Door Charts</h1>
+    <p>Artist Pages</p>
+  </header>
+
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="songs.html">Songs</a>
+    <a href="albums.html">Albums</a>
+    <a href="videos.html">Music Videos</a>
+    <a href="streaming.html">SW Music</a>
+    <a href="sales.html">Sales</a>
+    <a href="radio.html">Global Airplay</a>
+    <a href="artists.html">Artists</a>
+  </nav>
+
+  <main class="artist-page">
+    <section class="artist-search-card">
+      <h2>Artist Pages</h2>
+      <p>Search for any artist that has appeared on the charts.</p>
+
+      <input
+        id="artistSearch"
+        class="artist-search"
+        type="text"
+        placeholder="Search artist..."
+        autocomplete="off"
+      />
+
+      <div id="artistList" class="artist-list"></div>
+    </section>
+
+    <section id="artistProfile" class="artist-profile"></section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
