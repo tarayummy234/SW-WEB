@@ -14,6 +14,15 @@ function escapeHTML(value) {
     .replaceAll("'", "&#039;");
 }
 
+const CHART_LIMITS = {
+  songs: 100,
+  albums: 25,
+  videos: 25,
+  streaming: 50,
+  sales: 25,
+  radio: 25
+};
+
 function parsePosition(value) {
   const cleaned = clean(value).replace(/[^0-9]/g, "");
   return cleaned ? Number(cleaned) : NaN;
