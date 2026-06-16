@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All #1s | Open Door</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-page="number-ones">
+  <header class="site-header">
+    <h1>Open Door Charts</h1>
+    <p>All #1 Entries</p>
+  </header>
+
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="songs.html">Songs</a>
+    <a href="albums.html">Albums</a>
+    <a href="videos.html">Music Videos</a>
+    <a href="streaming.html">SW Music</a>
+    <a href="sales.html">Sales</a>
+    <a href="radio.html">Global Airplay</a>
+    <a href="artists.html">Artists</a>
+    <a href="number-ones.html">All #1s</a>
+  </nav>
+
+  <main class="number-ones-page">
+    <section class="number-ones-header">
+      <h2>All #1 Entries</h2>
+      <p>Every entry that has reached #1 on an Open Door chart.</p>
+
+      <div class="number-one-tabs">
+        <button class="number-one-tab active" data-chart="songs">Songs</button>
+        <button class="number-one-tab" data-chart="albums">Albums</button>
+        <button class="number-one-tab" data-chart="videos">Videos</button>
+        <button class="number-one-tab" data-chart="streaming">Streaming</button>
+        <button class="number-one-tab" data-chart="sales">Sales</button>
+        <button class="number-one-tab" data-chart="radio">Radio</button>
+      </div>
+    </section>
+
+    <section id="numberOnesStats" class="number-ones-stats"></section>
+
+    <section id="numberOnesList" class="number-ones-list">
+      <p class="loading-message">Loading #1 history...</p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    const NUMBER_ONE_CHART_LABELS = {
+      songs: "Songs Chart",
+      albums: "Albums Chart",
+      videos: "Music Videos Chart",
+      streaming: "SW Music Streaming Chart",
+      sales: "Sales Chart",
+      radio: "Global Airplay Chart"
+    };
+
+    let numberOneRows = [];
+    let activeNumberOneChart = "songs";
+
+    function clean(value) {
+      return value === undefined || value === null
+        ? ""
+        : String(value).replaceAll('"', "").trim();
+    }
+
+    function escapeHTML(value) {
+      return clean(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function parsePosition(value) {
+      const cleaned = clean(value).replace(/[^0-9]/g, "");
+      return cleaned ? Number(cleaned) : NaN;
+    }
+
+    function normalize(value) {
+      return clean(value).toLowerCase().replace(/\s+/g, " ");
+    }
+
+    function artistURL(artist) {
+      return `artists.html?artist=${encodeURIComponent(clean(artist))}`;
+    }
+
+    function splitFullName(fullName) {
+      const text = clean(fullName);
+
+      if (text.includes("\n")) {
+        const parts = text.split("\n").map(clean).filter(Boolean);
+
+        if (parts.length >= 2) {
+          return {
+            title: parts[0],
+            artist: parts.slice(1).join(" ")
+          };
+        }
+      }
+
+      if (text.includes(" - ")) {
+        const parts = text.split(" - ");
+
+        if (parts.length >= 2) {
+          return {
+            title: clean(parts[0]),
+            artist: clean(parts.slice(1).join(" - "))
+          };
+        }
+      }
+
+      return {
+        title: text,
+        artist: ""
+      };
+    }
+
+    function makeEntryKey(item) {
+      return `${item.chartType}|${normalize(item.title)}|${normalize(item.artist)}`;
+    }
+
+    async function loadChartRows(chartType, url) {
+      const finalUrl = url.includes("?")
+        ? `${url}&cache=${Date.now()}`
+        : `${url}?cache=${Date.now()}`;
+
+      const response = await fetch(finalUrl);
+      const text = await response.text();
+
+      const parsed = Papa.parse(text, {
+        skipEmptyLines: true
+      });
+
+      return parsed.data
+        .map(row => {
+          const fromFullName = splitFullName(row[2]);
+
+          const title = clean(row[5]) || fromFullName.title;
+          const artist = clean(row[6]) || fromFullName.artist;
+
+          return {
+            chartType,
+            week: clean(row[0]),
+            position: parsePosition(row[1]),
+            fullName: clean(row[2]),
+            title,
+            artist,
+            cover: clean(row[8])
+          };
+        })
+        .filter(item => {
+          return (
+            item.week &&
+            item.position === 1 &&
+            item.title &&
+            item.artist
+          );
+        });
+    }
+
+    async function loadAllNumberOnes() {
+      const chartEntries = Object.entries(SHEETS);
+
+      const results = await Promise.all(
+        chartEntries.map(([chartType, url]) => {
+          return loadChartRows(chartType, url).catch(error => {
+            console.error(`Could not load ${chartType}`, error);
+            return [];
+          });
+        })
+      );
+
+      numberOneRows = results.flat();
+    }
+
+    function buildNumberOneEntries(chartType) {
+      const rows = numberOneRows.filter(item => item.chartType === chartType);
+      const map = new Map();
+
+      rows.forEach(item => {
+        const key = makeEntryKey(item);
+
+        if (!map.has(key)) {
+          map.set(key, {
+            chartType: item.chartType,
+            title: item.title,
+            artist: item.artist,
+            cover: item.cover,
+            weeks: []
+          });
+        }
+
+        const entry = map.get(key);
+
+        entry.weeks.push(item.week);
+
+        if (!entry.cover && item.cover) {
+          entry.cover = item.cover;
+        }
+      });
+
+      return Array.from(map.values())
+        .map(entry => {
+          return {
+            ...entry,
+            weeksAtOne: entry.weeks.length,
+            firstWeekAtOne: entry.weeks[entry.weeks.length - 1],
+            latestWeekAtOne: entry.weeks[0]
+          };
+        })
+        .sort((a, b) => {
+          if (b.weeksAtOne !== a.weeksAtOne) {
+            return b.weeksAtOne - a.weeksAtOne;
+          }
+
+          return a.title.localeCompare(b.title);
+        });
+    }
+
+    function renderNumberOneStats(entries, chartType) {
+      const statsBox = document.getElementById("numberOnesStats");
+
+      if (!statsBox) return;
+
+      const totalNumberOnes = entries.length;
+      const totalWeeksAtOne = entries.reduce((sum, entry) => sum + entry.weeksAtOne, 0);
+      const longest = entries[0];
+
+      statsBox.innerHTML = `
+        <div>
+          <strong>${escapeHTML(totalNumberOnes)}</strong>
+          <span>Different #1 Entries</span>
+        </div>
+
+        <div>
+          <strong>${escapeHTML(totalWeeksAtOne)}</strong>
+          <span>Total Weeks at #1</span>
+        </div>
+
+        <div>
+          <strong>${longest ? escapeHTML(longest.weeksAtOne) : "0"}</strong>
+          <span>Longest #1 Run</span>
+        </div>
+
+        <div>
+          <strong>${escapeHTML(NUMBER_ONE_CHART_LABELS[chartType] || chartType)}</strong>
+          <span>Current Chart</span>
+        </div>
+      `;
+    }
+
+    function renderNumberOnes(chartType) {
+      const list = document.getElementById("numberOnesList");
+
+      if (!list) return;
+
+      const entries = buildNumberOneEntries(chartType);
+
+      renderNumberOneStats(entries, chartType);
+
+      if (entries.length === 0) {
+        list.innerHTML = `
+          <div class="number-one-empty">
+            <h3>No #1 entries found.</h3>
+            <p>This chart does not have any #1 rows yet.</p>
+          </div>
+        `;
+
+        return;
+      }
+
+      list.innerHTML = entries.map((entry, index) => {
+        return `
+          <article class="number-one-card">
+            <div class="number-one-rank">#${index + 1}</div>
+
+            ${
+              entry.cover
+                ? `<img class="number-one-cover" src="${escapeHTML(entry.cover)}" alt="${escapeHTML(entry.title)} cover" onerror="this.style.display='none'">`
+                : `<div class="number-one-cover placeholder"></div>`
+            }
+
+            <div class="number-one-main">
+              <h3>${escapeHTML(entry.title)}</h3>
+              <a href="${artistURL(entry.artist)}">${escapeHTML(entry.artist)}</a>
+
+              <div class="number-one-dates">
+                <span>First #1: ${escapeHTML(entry.firstWeekAtOne)}</span>
+                <span>Latest #1: ${escapeHTML(entry.latestWeekAtOne)}</span>
+              </div>
+            </div>
+
+            <div class="number-one-weeks">
+              <strong>${escapeHTML(entry.weeksAtOne)}</strong>
+              <span>weeks at #1</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function activateNumberOneTabs() {
+      document.querySelectorAll(".number-one-tab").forEach(button => {
+        button.addEventListener("click", () => {
+          activeNumberOneChart = button.dataset.chart;
+
+          document.querySelectorAll(".number-one-tab").forEach(tab => {
+            tab.classList.remove("active");
+          });
+
+          button.classList.add("active");
+
+          renderNumberOnes(activeNumberOneChart);
+        });
+      });
+    }
+
+    async function initNumberOnesPage() {
+      try {
+        await loadAllNumberOnes();
+        activateNumberOneTabs();
+        renderNumberOnes(activeNumberOneChart);
+      } catch (error) {
+        const list = document.getElementById("numberOnesList");
+
+        if (list) {
+          list.innerHTML = `
+            <div class="number-one-empty">
+              <h3>Could not load #1 history.</h3>
+              <p>Check your Google Sheets links in config.js.</p>
+            </div>
+          `;
+        }
+
+        console.error(error);
+      }
+    }
+
+    initNumberOnesPage();
+  </script>
+</body>
+</html>
