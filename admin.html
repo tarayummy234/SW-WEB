@@ -796,7 +796,9 @@
         renderResults();
       });
 
-      document.getElementById("adminSearchButton").addEventListener("click", renderResults);
+      document.getElementById("adminSearch").addEventListener("input", renderResults);
+
+document.getElementById("adminSearchButton").addEventListener("click", renderResults);
 
 document.getElementById("adminSearch").addEventListener("keydown", event => {
   if (event.key === "Enter") {
