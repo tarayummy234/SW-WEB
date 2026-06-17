@@ -53,7 +53,7 @@
   <script>
     const ADMIN_STORAGE_KEY = "openDoorManualUnits";
 
-    const STREAMS_PER_SONG_UNIT = 60;
+    const SONG_FINAL_UNIT_MULTIPLIER = 0.25;
 
     const CERTIFICATION_LEVELS = [
   { label: "10x Ruby", threshold: 1000000000, tier: "ruby" },
@@ -224,6 +224,16 @@
       return data[key] || 0;
     }
 
+    function getReducedFinalUnits(item) {
+  const rawFinalUnits = item.baseUnits + item.manualUnits;
+
+  if (item.type === "song") {
+    return Math.round(rawFinalUnits * SONG_FINAL_UNIT_MULTIPLIER);
+  }
+
+  return Math.round(rawFinalUnits);
+}
+
     function getCertification(units) {
       return CERTIFICATION_LEVELS.find(level => units >= level.threshold) || null;
     }
@@ -355,26 +365,35 @@ function combineSongUnits(streamingRows, salesRows) {
     }
 
     async function loadCertificationItems() {
-      const streamingRows = await loadCSV(SHEETS.streaming, "streaming").catch(() => []);
-      const salesRows = await loadCSV(SHEETS.sales, "sales").catch(() => []);
-      const albumRows = await loadCSV(SHEETS.albums, "albums").catch(() => []);
-
+     const manualUnits = getManualUnits(item);
+const rawFinalUnits = item.baseUnits + manualUnits;
+const finalUnits = getReducedFinalUnits({
+  ...item,
+  manualUnits
+});
+const certification = getCertification(finalUnits);
       const songs = combineSongUnits(streamingRows, salesRows);
       const albums = combineAlbumUnits(albumRows);
 
       certificationRows = [...songs, ...albums].map(item => {
-        const manualUnits = getManualUnits(item);
-        const finalUnits = item.baseUnits + manualUnits;
-        const certification = getCertification(finalUnits);
+  const manualUnits = getManualUnits(item);
+  const rawFinalUnits = item.baseUnits + manualUnits;
 
-        return {
-          ...item,
-          manualUnits,
-          finalUnits,
-          certification
-        };
-      });
-    }
+  const finalUnits = getReducedFinalUnits({
+    ...item,
+    manualUnits
+  });
+
+  const certification = getCertification(finalUnits);
+
+  return {
+    ...item,
+    manualUnits,
+    rawFinalUnits,
+    finalUnits,
+    certification
+  };
+});
 
     function getCertifiedItems(type) {
       return certificationRows
