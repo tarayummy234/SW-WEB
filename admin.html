@@ -172,10 +172,10 @@
     }
 
     .unit-buttons {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
 
     .unit-buttons button,
     .admin-reset-button {
@@ -777,12 +777,15 @@
           </div>
         </div>
 
-        <div class="unit-buttons">
-          <button class="add-unit" onclick="adjustUnits(100000)">+100K Units</button>
-          <button class="add-unit" onclick="adjustUnits(10000)">+10K Units</button>
-          <button class="remove-unit" onclick="adjustUnits(-100000)">-100K Units</button>
-          <button class="remove-unit" onclick="adjustUnits(-10000)">-10K Units</button>
-        </div>
+       <div class="unit-buttons">
+  <button class="add-unit" onclick="adjustUnits(1000000)">+1M Units</button>
+  <button class="add-unit" onclick="adjustUnits(100000)">+100K Units</button>
+  <button class="add-unit" onclick="adjustUnits(10000)">+10K Units</button>
+
+  <button class="remove-unit" onclick="adjustUnits(-1000000)">-1M Units</button>
+  <button class="remove-unit" onclick="adjustUnits(-100000)">-100K Units</button>
+  <button class="remove-unit" onclick="adjustUnits(-10000)">-10K Units</button>
+</div>
 
         <button class="admin-reset-button" onclick="resetManualUnits()">Reset Manual Units</button>
       `;
