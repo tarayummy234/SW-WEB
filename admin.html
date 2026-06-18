@@ -1,193 +1,94 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin | Sweet 16 Charts</title>
-
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body data-page="admin">
   <header class="site-header">
     <h1>Sweet 16 Charts</h1>
-    <p>Admin Studio</p>
+    <p>The official weekly music chart</p>
   </header>
 
-  <main class="admin-page">
-    <section class="special-hero">
-      <h2>Homepage News Editor</h2>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="songs.html">Songs</a>
+    <a href="albums.html">Albums</a>
+    <a href="videos.html">Music Videos</a>
+    <a href="streaming.html">Streaming</a>
+    <a href="sales.html">Sales</a>
+    <a href="radio.html">Radio</a>
+    <a href="artists.html">Artists</a>
+    <a href="number-ones.html">All #1s</a>
+    <a href="year-end.html">Year-End</a>
+    <a href="certifications.html">Certifications</a>
+  </nav>
+
+  <main>
+    <section class="admin-card" style="padding: 22px;">
+      <h2>Admin / Customize</h2>
       <p>
-        Edit the homepage news section here, then copy the generated code into site-data.js.
+        Changes you save here will show in this browser. To make the changes public for everyone,
+        copy the export code into <strong>site-settings.js</strong>.
       </p>
+
+      <form id="customizeForm">
+        <div class="designer-control">
+          <label for="siteTitle">Site title</label>
+          <input id="siteTitle" type="text">
+        </div>
+
+        <div class="designer-control">
+          <label for="siteTagline">Site tagline</label>
+          <input id="siteTagline" type="text">
+        </div>
+
+        <div class="designer-control">
+          <label for="newsTitle">Homepage news title</label>
+          <input id="newsTitle" type="text">
+        </div>
+
+        <div class="designer-control">
+          <label for="newsBody">Homepage news text</label>
+          <textarea id="newsBody" rows="5"></textarea>
+        </div>
+
+        <div class="designer-control">
+          <label for="newsImage">Homepage news image URL</label>
+          <input id="newsImage" type="url" placeholder="https://...">
+        </div>
+
+        <div class="designer-control">
+          <label for="accentColor">Accent color</label>
+          <input id="accentColor" type="color">
+        </div>
+
+        <div class="designer-actions">
+          <button type="submit">Save Preview</button>
+          <button type="button" id="resetCustomize">Reset</button>
+        </div>
+
+        <p id="adminStatus" style="color: var(--accent); font-weight: 900;"></p>
+      </form>
     </section>
 
-    <section class="admin-grid">
-      <div class="admin-card">
-        <h2>News Settings</h2>
+    <section class="admin-card" style="padding: 22px; margin-top: 18px;">
+      <h2>Export Public Settings</h2>
+      <p>
+        After saving, copy everything in this box and paste it into <strong>site-settings.js</strong>.
+        Then commit the file. That is what makes the change visible on the actual website.
+      </p>
 
-        <div class="admin-control">
-          <label>Eyebrow</label>
-          <input id="newsEyebrow" value="This Week on Sweet 16" />
-        </div>
-
-        <div class="admin-control">
-          <label>Headline</label>
-          <input id="newsHeadline" value="Welcome to Sweet 16 Charts" />
-        </div>
-
-        <div class="admin-control">
-          <label>Description</label>
-          <textarea id="newsDescription" rows="5">Customize this homepage news banner from admin.html, then copy the generated code into site-data.js.</textarea>
-        </div>
-
-        <div class="admin-control">
-          <label>Banner picture URL</label>
-          <input id="newsBanner" placeholder="https://image-link.jpg" />
-        </div>
-
-        <div class="admin-control">
-          <label>Song / album cover URL</label>
-          <input id="newsCover" placeholder="https://image-link.jpg" />
-        </div>
-
-        <div class="admin-control">
-          <label>Button link</label>
-          <input id="newsLink" value="songs.html" />
-        </div>
-
-        <div class="admin-control">
-          <label>Button text</label>
-          <input id="newsButtonText" value="View Songs Chart" />
-        </div>
-
-        <div class="admin-control">
-          <label>Accent color</label>
-          <input id="newsAccent" type="color" value="#ffffff" />
-        </div>
-
-        <div class="admin-control">
-          <label>Text color</label>
-          <input id="newsTextColor" type="color" value="#ffffff" />
-        </div>
-
-        <button id="generateNewsCode" class="admin-button" type="button">
-          Generate Code
-        </button>
-      </div>
-
-      <div class="admin-card">
-        <h2>Live Preview</h2>
-
-        <div id="adminNewsPreview"></div>
-
-        <h2>site-data.js Code</h2>
-
-        <textarea id="siteDataExport" class="admin-export" readonly></textarea>
-
-        <button id="copySiteData" class="copy-button" type="button">
-          Copy site-data.js Code
-        </button>
-      </div>
+      <textarea id="settingsExport" class="css-export" readonly></textarea>
     </section>
   </main>
 
+  <script src="site-settings.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
   <script src="script.js"></script>
-
-  <script>
-    const fields = {
-      eyebrow: document.getElementById("newsEyebrow"),
-      headline: document.getElementById("newsHeadline"),
-      description: document.getElementById("newsDescription"),
-      banner: document.getElementById("newsBanner"),
-      cover: document.getElementById("newsCover"),
-      link: document.getElementById("newsLink"),
-      buttonText: document.getElementById("newsButtonText"),
-      accent: document.getElementById("newsAccent"),
-      textColor: document.getElementById("newsTextColor")
-    };
-
-    const preview = document.getElementById("adminNewsPreview");
-    const exportBox = document.getElementById("siteDataExport");
-
-    function escapeJS(value) {
-      return String(value || "")
-        .replaceAll("\\", "\\\\")
-        .replaceAll('"', '\\"')
-        .replaceAll("\n", "\\n");
-    }
-
-    function getNewsData() {
-      return {
-        visible: true,
-        eyebrow: fields.eyebrow.value,
-        headline: fields.headline.value,
-        description: fields.description.value,
-        banner: fields.banner.value,
-        cover: fields.cover.value,
-        link: fields.link.value,
-        buttonText: fields.buttonText.value,
-        accent: fields.accent.value,
-        textColor: fields.textColor.value
-      };
-    }
-
-    function renderAdminPreview() {
-      const news = getNewsData();
-
-      preview.innerHTML = `
-        <section
-          class="home-news"
-          style="
-            --news-accent: ${news.accent};
-            --news-text: ${news.textColor};
-            ${news.banner ? `background-image: linear-gradient(90deg, rgba(0,0,0,0.92), rgba(0,0,0,0.55)), url('${news.banner}');` : ""}
-          "
-        >
-          <div class="home-news-content">
-            <span>${news.eyebrow}</span>
-            <h2>${news.headline}</h2>
-            <p>${news.description}</p>
-            <a href="${news.link}">${news.buttonText}</a>
-          </div>
-
-          ${
-            news.cover
-              ? `<img class="home-news-cover" src="${news.cover}" alt="News cover">`
-              : ""
-          }
-        </section>
-      `;
-
-      exportBox.value = `window.SWEET16_SITE_DATA = {
-  homeNews: {
-    visible: true,
-    eyebrow: "${escapeJS(news.eyebrow)}",
-    headline: "${escapeJS(news.headline)}",
-    description: "${escapeJS(news.description)}",
-    banner: "${escapeJS(news.banner)}",
-    cover: "${escapeJS(news.cover)}",
-    link: "${escapeJS(news.link)}",
-    buttonText: "${escapeJS(news.buttonText)}",
-    accent: "${escapeJS(news.accent)}",
-    textColor: "${escapeJS(news.textColor)}"
-  }
-};`;
-    }
-
-    Object.values(fields).forEach(field => {
-      field.addEventListener("input", renderAdminPreview);
-    });
-
-    document.getElementById("generateNewsCode").addEventListener("click", renderAdminPreview);
-
-    document.getElementById("copySiteData").addEventListener("click", async () => {
-      await navigator.clipboard.writeText(exportBox.value);
-      alert("Copied. Paste this into site-data.js.");
-    });
-
-    renderAdminPreview();
-  </script>
 </body>
 </html>
