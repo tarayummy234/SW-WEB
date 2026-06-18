@@ -874,14 +874,16 @@ function renderArtistChartButtons(artist, activeChartType) {
 }
 
 function renderArtistProfile(artist, chartType = selectedArtistChart) {
-  const profile = document.getElementById("artistProfile");
+  const profile = document.getElementById("artistPageContent") || document.getElementById("artistProfile");
 
   if (!profile) return;
 
   if (!artist) {
     profile.innerHTML = `
-      <h2>Choose an artist</h2>
-      <p>Select an artist from the dropdown to see their chart history.</p>
+      <section class="artist-empty">
+        <h2>Choose an artist</h2>
+        <p>Select an artist from the dropdown to see their chart history.</p>
+      </section>
     `;
     return;
   }
@@ -890,8 +892,10 @@ function renderArtistProfile(artist, chartType = selectedArtistChart) {
 
   if (availableCharts.length === 0) {
     profile.innerHTML = `
-      <h2>Artist not found</h2>
-      <p>This artist has not charted yet based on the current data.</p>
+      <section class="artist-empty">
+        <h2>Artist not found</h2>
+        <p>This artist has not charted yet based on the current data.</p>
+      </section>
     `;
     return;
   }
@@ -905,54 +909,88 @@ function renderArtistProfile(artist, chartType = selectedArtistChart) {
   const stats = getArtistStats(artist, chartType);
   const chartLabel = CHART_LABELS[chartType] || chartType;
 
+  const customArtistData =
+    window.SWEET16_ARTIST_DATA && window.SWEET16_ARTIST_DATA[artist]
+      ? window.SWEET16_ARTIST_DATA[artist]
+      : {};
+
+  const firstEntry = stats.entries[0] || {};
+  const banner = customArtistData.banner || firstEntry.cover || "";
+  const image = customArtistData.image || firstEntry.cover || "";
+  const subtitle = customArtistData.subtitle || `${stats.chartDebuts} chart entries · ${stats.totalChartWeeks} total chart weeks`;
+  const bio = customArtistData.bio || `${artist} has charted on the Sweet 16 ${chartLabel}.`;
+  const facts = Array.isArray(customArtistData.facts) ? customArtistData.facts : [];
+
   profile.innerHTML = `
-    <h2>${escapeHTML(artist)}</h2>
-    <p>Viewing ${escapeHTML(chartLabel)}</p>
+    <section class="artist-spotify-hero" ${banner ? `style="background-image: linear-gradient(to bottom, rgba(35,35,35,0.1), rgba(0,0,0,0.9)), url('${escapeHTML(banner)}')"` : ""}>
+      <div class="artist-hero-fade"></div>
 
-    ${renderArtistChartButtons(artist, chartType)}
-
-    <div class="artist-stat-grid">
-      <div class="artist-stat">
-        <strong>${escapeHTML(stats.numberOnes)}</strong>
-        <span>Different #1s</span>
-      </div>
-
-      <div class="artist-stat">
-        <strong>${escapeHTML(stats.chartDebuts)}</strong>
-        <span>Chart Debuts</span>
-      </div>
-
-      <div class="artist-stat">
-        <strong>${escapeHTML(stats.totalChartWeeks)}</strong>
-        <span>Total Chart Weeks</span>
-      </div>
-
-      <div class="artist-stat">
-        <strong>#${escapeHTML(stats.bestPeak)}</strong>
-        <span>Best Peak</span>
-      </div>
-    </div>
-
-    <h3>Best Performing Entries</h3>
-
-    ${stats.entries.length ? stats.entries.map(entry => `
-      <article class="artist-entry">
-        <div class="cover-wrap">
-          ${entry.cover ? `<img src="${escapeHTML(entry.cover)}" alt="${escapeHTML(entry.title)} cover">` : `<div class="cover"></div>`}
-          ${entry.audio ? `<button class="play-button" data-audio="${escapeHTML(entry.audio)}" aria-label="Play preview">▶</button>` : ""}
-        </div>
+      <div class="artist-hero-content">
+        ${image ? `<img class="artist-avatar" src="${escapeHTML(image)}" alt="${escapeHTML(artist)}">` : `<div class="artist-avatar"></div>`}
 
         <div>
-          <h4>${escapeHTML(entry.title)}</h4>
-          <p>${escapeHTML(entry.artistRaw)}</p>
-          <p>Debut: ${escapeHTML(entry.debutDate)} · Peak date: ${escapeHTML(entry.peakDate)}</p>
-          <p>#${escapeHTML(entry.bestPeak)} · ${escapeHTML(entry.weeksAtPeak)} weeks at peak · ${escapeHTML(entry.totalWeeks)} total weeks</p>
-          ${entry.totalMetric ? `<span class="metric">${escapeHTML(shortNumber(entry.totalMetric))} total ${escapeHTML(METRIC_LABELS[chartType] || "points")}</span>` : ""}
+          <span class="artist-label">Artist</span>
+          <h2>${escapeHTML(artist)}</h2>
+          <p>${escapeHTML(subtitle)}</p>
         </div>
-      </article>
-    `).join("") : `
-      <p>No entries found for this chart.</p>
-    `}
+      </div>
+    </section>
+
+    <section class="artist-top-section">
+      <div class="artist-section-head">
+        <div>
+          <h2>${escapeHTML(chartLabel)}</h2>
+          <p>
+            #${escapeHTML(stats.bestPeak)} best peak ·
+            ${escapeHTML(stats.numberOnes)} different #1s ·
+            ${escapeHTML(stats.chartDebuts)} chart debuts
+          </p>
+        </div>
+      </div>
+
+      ${renderArtistChartButtons(artist, chartType)}
+
+      <div class="artist-top-list">
+        ${stats.entries.length ? stats.entries.map((entry, index) => `
+          <article class="artist-top-track">
+            <div class="artist-track-rank">#${index + 1}</div>
+
+            ${entry.cover ? `
+              <img class="cover" src="${escapeHTML(entry.cover)}" alt="${escapeHTML(entry.title)} cover">
+            ` : `
+              <div class="cover"></div>
+            `}
+
+            <div class="artist-track-info">
+              <h3>${escapeHTML(entry.title)}</h3>
+              <p>${escapeHTML(entry.artistRaw)}</p>
+              <p>
+                Peak #${escapeHTML(entry.bestPeak)} ·
+                ${escapeHTML(entry.weeksAtPeak)} weeks at peak ·
+                ${escapeHTML(entry.totalWeeks)} total weeks
+              </p>
+            </div>
+
+            <div class="artist-track-metric">
+              ${entry.totalMetric ? `${escapeHTML(shortNumber(entry.totalMetric))} total ${escapeHTML(METRIC_LABELS[chartType] || "points")}` : ""}
+            </div>
+          </article>
+        `).join("") : `
+          <p>No entries found for this chart.</p>
+        `}
+      </div>
+    </section>
+
+    <section class="artist-info-section">
+      <h2>About</h2>
+      <p>${escapeHTML(bio)}</p>
+
+      ${facts.length ? `
+        <div class="artist-facts">
+          ${facts.map(fact => `<span>${escapeHTML(fact)}</span>`).join("")}
+        </div>
+      ` : ""}
+    </section>
   `;
 
   document.querySelectorAll(".artist-chart-tab").forEach(button => {
@@ -1039,15 +1077,19 @@ function applySiteSettings() {
 
   const headerTitle = document.querySelector(".site-header h1");
 
-  if (headerTitle && settings.siteTitle) {
-    headerTitle.textContent = settings.siteTitle;
-  }
+if (headerTitle && settings.siteTitle) {
+  headerTitle.textContent = settings.siteTitle;
+}
 
-  const headerTagline = document.querySelector(".site-header p");
+const headerTagline = document.querySelector(".site-header p");
 
-  if (headerTagline && settings.siteTagline) {
-    headerTagline.textContent = settings.siteTagline;
-  }
+if (
+  headerTagline &&
+  settings.siteTagline &&
+  (document.body.dataset.page === "home" || document.body.dataset.page === "admin")
+) {
+  headerTagline.textContent = settings.siteTagline;
+}
 
   renderHomeNews(settings);
 }
@@ -1060,29 +1102,67 @@ function renderHomeNews(settings) {
 
   if (!isHome) return;
 
+  const oldNews = window.SWEET16_SITE_DATA && window.SWEET16_SITE_DATA.homeNews
+    ? window.SWEET16_SITE_DATA.homeNews
+    : {};
+
+  const newsData = {
+    visible: oldNews.visible !== false,
+    eyebrow: oldNews.eyebrow || "This Week on Sweet 16",
+    headline: settings.newsTitle || oldNews.headline || "Sweet 16 News",
+    description: settings.newsBody || oldNews.description || "Latest chart news will appear here.",
+    banner: settings.newsImage || oldNews.banner || "",
+    cover: oldNews.cover || settings.newsImage || "",
+    link: oldNews.link || "songs.html",
+    buttonText: oldNews.buttonText || "View Chart",
+    accent: settings.accentColor || oldNews.accent || "",
+    textColor: oldNews.textColor || ""
+  };
+
   let news = document.getElementById("homeNews");
 
   if (!news) {
     const hero = document.querySelector(".home-hero") || document.querySelector("main");
-
     if (!hero) return;
 
     news = document.createElement("section");
     news.id = "homeNews";
-    news.className = "news-section";
-
     hero.insertAdjacentElement("afterend", news);
   }
 
+  if (!newsData.visible) {
+    news.innerHTML = "";
+    return;
+  }
+
+  news.className = "home-news";
+
+  if (newsData.banner) {
+    news.style.backgroundImage = `
+      linear-gradient(90deg, rgba(0,0,0,0.92), rgba(0,0,0,0.65)),
+      url("${newsData.banner}")
+    `;
+  }
+
+  if (newsData.accent) {
+    news.style.setProperty("--news-accent", newsData.accent);
+  }
+
+  if (newsData.textColor) {
+    news.style.setProperty("--news-text", newsData.textColor);
+  }
+
   news.innerHTML = `
-    <div class="news-card">
-      ${settings.newsImage ? `<img class="news-image" src="${escapeHTML(settings.newsImage)}" alt="News image">` : ""}
-      <div>
-        <span class="home-kicker">News</span>
-        <h2>${escapeHTML(settings.newsTitle || "Sweet 16 News")}</h2>
-        <p>${escapeHTML(settings.newsBody || "Latest chart news will appear here.")}</p>
-      </div>
+    <div class="home-news-content">
+      <span>${escapeHTML(newsData.eyebrow)}</span>
+      <h2>${escapeHTML(newsData.headline)}</h2>
+      <p>${escapeHTML(newsData.description)}</p>
+      <a href="${escapeHTML(newsData.link)}">${escapeHTML(newsData.buttonText)}</a>
     </div>
+
+    ${newsData.cover ? `
+      <img class="home-news-cover" src="${escapeHTML(newsData.cover)}" alt="News cover">
+    ` : ""}
   `;
 }
 
