@@ -517,18 +517,52 @@ function getChartRun(title, artistRaw, chartType = getChartType()) {
       return item.chartType === chartType && makeKey(item.title, item.artistRaw) === itemKey;
     })
     .sort((a, b) => {
-      return getWeekIndex(a) - getWeekIndex(b);
+      return getWeekIndex(b) - getWeekIndex(a);
     });
 
   if (run.length === 0) {
-    return `No chart history found.`;
+    return `
+      <div class="run-empty">No chart history found.</div>
+    `;
   }
 
-  return run
-    .map(item => {
-      return `<span>${escapeHTML(item.week)}: #${escapeHTML(item.position)}</span>`;
-    })
-    .join(" · ");
+  const peak = Math.min(...run.map(item => item.position));
+  const weeks = run.length;
+  const debut = run[0];
+  const latest = run[run.length - 1];
+
+  return `
+    <div class="run-stats">
+      <div>
+        <strong>#${escapeHTML(peak)}</strong>
+        <span>Peak</span>
+      </div>
+
+      <div>
+        <strong>${escapeHTML(weeks)}</strong>
+        <span>Total weeks</span>
+      </div>
+
+      <div>
+        <strong>${escapeHTML(debut.week)}</strong>
+        <span>Debut week</span>
+      </div>
+
+      <div>
+        <strong>#${escapeHTML(latest.position)}</strong>
+        <span>Latest position</span>
+      </div>
+    </div>
+
+    <div class="run-history">
+      ${run.map(item => `
+        <div class="run-week">
+          <span>${escapeHTML(item.week)}</span>
+          <strong>#${escapeHTML(item.position)}</strong>
+        </div>
+      `).join("")}
+    </div>
+  `;
 }
 
 function renderArtistLinks(item) {
@@ -572,25 +606,38 @@ function renderChart(week) {
     const movementClass = getMovementClass(movement);
 
     chart.innerHTML += `
-      <article class="chart-item">
-        <div class="position">#${escapeHTML(item.position)}</div>
+      <article class="compact-chart-item">
+        <div class="compact-rank">#${escapeHTML(item.position)}</div>
 
-        <div class="cover-wrap">
-          ${item.cover ? `<img class="cover" src="${escapeHTML(item.cover)}" alt="${escapeHTML(item.title)} cover">` : `<div class="cover"></div>`}
-          ${item.audio ? `<button class="play-button" data-audio="${escapeHTML(item.audio)}" aria-label="Play preview">▶</button>` : ""}
+        <div class="compact-cover-wrap ${item.audio ? "has-audio" : ""}" ${item.audio ? `data-audio="${escapeHTML(item.audio)}"` : ""}>
+          ${item.cover ? `
+            <img class="compact-cover" src="${escapeHTML(item.cover)}" alt="${escapeHTML(item.title)} cover">
+          ` : `
+            <div class="compact-cover placeholder-cover"></div>
+          `}
+
+          ${item.audio ? `
+            <button class="play-button image-play-button" data-audio="${escapeHTML(item.audio)}" aria-label="Play preview">
+              ▶
+            </button>
+          ` : ""}
         </div>
 
-        <div class="song-info">
+        <div class="compact-main">
           <h3>${escapeHTML(item.title)}</h3>
           <p>${renderArtistLinks(item)}</p>
-          ${metric ? `<span class="metric">${escapeHTML(metric)}</span>` : ""}
+
+          <div class="compact-meta">
+            ${metric ? `<span>${escapeHTML(metric)}</span>` : ""}
+            <span class="movement ${movementClass}">${escapeHTML(movement)}</span>
+          </div>
         </div>
 
-        <div class="movement ${movementClass}">${escapeHTML(movement)}</div>
+        <button class="compact-expand-button expand-button" data-run="run-${id}" aria-label="Show chart history">
+          +
+        </button>
 
-        <button class="expand-button" data-run="run-${id}">+</button>
-
-        <div class="chart-run" id="run-${id}">
+        <div class="compact-chart-run chart-run" id="run-${id}">
           ${getChartRun(item.title, item.artistRaw, chartType)}
         </div>
       </article>
@@ -611,24 +658,33 @@ function activateButtons() {
     document.body.appendChild(audioPlayer);
   }
 
+  function playPreview(audioUrl) {
+    if (!audioUrl) return;
+
+    if (audioPlayer.src === audioUrl && !audioPlayer.paused) {
+      audioPlayer.pause();
+      return;
+    }
+
+    audioPlayer.src = audioUrl;
+    audioPlayer.play().catch(error => {
+      console.error("Preview could not play:", error);
+    });
+  }
+
   document.querySelectorAll(".play-button").forEach(button => {
     button.addEventListener("click", event => {
       event.preventDefault();
       event.stopPropagation();
+      playPreview(button.dataset.audio);
+    });
+  });
 
-      const audioUrl = button.dataset.audio;
-
-      if (!audioUrl) return;
-
-      if (audioPlayer.src === audioUrl && !audioPlayer.paused) {
-        audioPlayer.pause();
-        return;
-      }
-
-      audioPlayer.src = audioUrl;
-      audioPlayer.play().catch(error => {
-        console.error("Preview could not play:", error);
-      });
+  document.querySelectorAll(".compact-cover-wrap.has-audio").forEach(cover => {
+    cover.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      playPreview(cover.dataset.audio);
     });
   });
 
