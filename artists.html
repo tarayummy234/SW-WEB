@@ -3,48 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Artists | Open Door</title>
+
+  <title>Artists | Sweet 16 Charts</title>
+
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body data-page="artists">
   <header class="site-header">
-    <h1>Open Door Charts</h1>
-    <p>Artist Pages</p>
+    <h1>Sweet 16 Charts</h1>
+    <p>Artists</p>
   </header>
 
   <nav class="nav">
-  <a href="index.html">Home</a>
-  <a href="songs.html">Songs</a>
-  <a href="albums.html">Albums</a>
-  <a href="videos.html">Music Videos</a>
-  <a href="streaming.html">SW Music</a>
-  <a href="sales.html">Sales</a>
-  <a href="radio.html">Global Airplay</a>
-  <a href="artists.html">Artists</a>
-  <a href="number-ones.html">All #1s</a>
-</nav>
+    <a href="index.html">Home</a>
+    <a href="songs.html">Songs</a>
+    <a href="albums.html">Albums</a>
+    <a href="videos.html">Music Videos</a>
+    <a href="streaming.html">Streaming</a>
+    <a href="sales.html">Sales</a>
+    <a href="radio.html">Radio</a>
+    <a href="artists.html">Artists</a>
+    <a href="number-ones.html">All #1s</a>
+    <a href="year-end.html">Year-End</a>
+    <a href="certifications.html">Certifications</a>
+  </nav>
 
   <main class="artist-page">
     <section class="artist-search-card">
       <h2>Artist Pages</h2>
-      <p>Choose any artist that has charted at least once.</p>
+      <p>Select an artist to view their Sweet 16 chart history.</p>
 
-      <select id="artistSelect" class="artist-select">
-        <option value="">Loading artists...</option>
-      </select>
-    </section>
-
-    <section id="artistProfile" class="artist-profile">
-      <div class="artist-profile-card">
-        <h2>Choose an artist</h2>
-        <p>Select an artist from the dropdown to see their chart history.</p>
+      <div class="artist-search-row">
+        <select id="artistSelect">
+          <option value="">Loading artists...</option>
+        </select>
       </div>
     </section>
+
+    <section id="artistPageContent"></section>
   </main>
+
+  <audio id="audioPlayer" class="audio-player" controls></audio>
 
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="config.js"></script>
+  <script src="artist-data.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
