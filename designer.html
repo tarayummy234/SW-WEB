@@ -19,7 +19,7 @@
     <section class="designer-panel">
       <h2>Website Designer</h2>
       <p style="color: var(--muted);">
-        Edit the look here, preview it live, then copy the CSS at the bottom into style.css.
+        Edit the look, preview it live, then copy the CSS into style.css.
       </p>
 
       <div class="designer-control">
@@ -54,7 +54,7 @@
 
       <div class="designer-control">
         <label>Border radius</label>
-        <input id="radiusInput" type="range" min="0" max="36" value="18" />
+        <input id="radiusInput" type="range" min="0" max="36" value="16" />
       </div>
 
       <div class="designer-control">
@@ -73,6 +73,47 @@
         <button id="saveDesignButton">Save Preview</button>
         <button id="resetDesignButton">Reset</button>
       </div>
+
+      <hr style="border-color: var(--border); margin: 26px 0;">
+
+      <h2>Artist Info Generator</h2>
+      <p style="color: var(--muted);">
+        Fill this out, then copy the generated code into artist-data.js.
+      </p>
+
+      <div class="designer-control">
+        <label>Artist name</label>
+        <input id="artistNameInput" type="text" placeholder="Ariana Grande" />
+      </div>
+
+      <div class="designer-control">
+        <label>Artist banner URL</label>
+        <input id="artistBannerInput" type="text" placeholder="https://image-link.jpg" />
+      </div>
+
+      <div class="designer-control">
+        <label>Artist profile image URL</label>
+        <input id="artistImageInput" type="text" placeholder="https://image-link.jpg" />
+      </div>
+
+      <div class="designer-control">
+        <label>Artist subtitle</label>
+        <input id="artistSubtitleInput" type="text" placeholder="Pop artist" />
+      </div>
+
+      <div class="designer-control">
+        <label>Artist bio</label>
+        <textarea id="artistBioInput" rows="5" placeholder="Write the artist bio here..."></textarea>
+      </div>
+
+      <div class="designer-control">
+        <label>Artist facts</label>
+        <textarea id="artistFactsInput" rows="4" placeholder="One fact per line"></textarea>
+      </div>
+
+      <button id="generateArtistButton" class="copy-button" type="button">
+        Generate Artist Code
+      </button>
     </section>
 
     <section class="designer-preview">
@@ -97,20 +138,24 @@
             <p>The third color changes based on the section you are designing.</p>
           </div>
 
-          <div class="chart-item">
+          <div class="compact-chart-row">
             <div class="position">#1</div>
 
             <div class="cover-wrap">
               <div class="cover"></div>
+              <button class="preview-button" type="button">▶</button>
             </div>
 
-            <div class="song-info">
+            <div class="compact-song-info">
               <h3>Example Song</h3>
               <p>Example Artist</p>
-              <span class="metric">51.3M audience</span>
             </div>
 
+            <div class="compact-metric">51.3M audience</div>
+
             <div class="movement up">▲ 3</div>
+
+            <button class="expand-button" type="button">+</button>
           </div>
         </div>
       </div>
@@ -122,6 +167,14 @@
 
       <textarea id="cssExport" class="css-export" readonly></textarea>
       <button id="copyCSSButton" class="copy-button">Copy CSS</button>
+
+      <h2 style="margin-top: 28px;">Artist Code Export</h2>
+      <p style="color: var(--muted);">
+        Copy this inside artist-data.js inside the main object.
+      </p>
+
+      <textarea id="artistCodeExport" class="css-export" readonly></textarea>
+      <button id="copyArtistCodeButton" class="copy-button">Copy Artist Code</button>
     </section>
   </main>
 
@@ -140,6 +193,7 @@
     const previewTitle = document.getElementById("previewTitle");
     const previewSubtitle = document.getElementById("previewSubtitle");
     const cssExport = document.getElementById("cssExport");
+    const artistCodeExport = document.getElementById("artistCodeExport");
 
     const presets = {
       classic: {
@@ -152,7 +206,7 @@
         bg: "#000000",
         text: "#ffffff",
         card: "#101010",
-        accent: "#00ff88"
+        accent: "#1ed760"
       },
       sales: {
         bg: "#000000",
@@ -252,10 +306,45 @@
         controls.text.value = design.text || "#ffffff";
         controls.card.value = design.card || "#111111";
         controls.accent.value = design.accent || "#ffffff";
-        controls.radius.value = parseInt(design.radius) || 18;
+        controls.radius.value = parseInt(design.radius) || 16;
       } catch {
         return;
       }
+    }
+
+    function escapeJS(value) {
+      return String(value || "")
+        .replaceAll("\\", "\\\\")
+        .replaceAll('"', '\\"')
+        .replaceAll("\n", "\\n");
+    }
+
+    function generateArtistCode() {
+      const artistName = document.getElementById("artistNameInput").value.trim();
+      const banner = document.getElementById("artistBannerInput").value.trim();
+      const image = document.getElementById("artistImageInput").value.trim();
+      const subtitle = document.getElementById("artistSubtitleInput").value.trim();
+      const bio = document.getElementById("artistBioInput").value.trim();
+
+      const facts = document.getElementById("artistFactsInput").value
+        .split("\n")
+        .map(fact => fact.trim())
+        .filter(Boolean);
+
+      if (!artistName) {
+        alert("Add the artist name first.");
+        return;
+      }
+
+      artistCodeExport.value = `"${escapeJS(artistName)}": {
+  banner: "${escapeJS(banner)}",
+  image: "${escapeJS(image)}",
+  subtitle: "${escapeJS(subtitle)}",
+  bio: "${escapeJS(bio)}",
+  facts: [
+${facts.map(fact => `    "${escapeJS(fact)}"`).join(",\n")}
+  ]
+},`;
     }
 
     Object.values(controls).forEach(control => {
@@ -287,7 +376,7 @@
       controls.text.value = "#ffffff";
       controls.card.value = "#111111";
       controls.accent.value = "#ffffff";
-      controls.radius.value = 18;
+      controls.radius.value = 16;
       controls.preset.value = "classic";
 
       applyDesign();
@@ -296,6 +385,13 @@
     document.getElementById("copyCSSButton").addEventListener("click", async () => {
       await navigator.clipboard.writeText(cssExport.value);
       alert("CSS copied.");
+    });
+
+    document.getElementById("generateArtistButton").addEventListener("click", generateArtistCode);
+
+    document.getElementById("copyArtistCodeButton").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(artistCodeExport.value);
+      alert("Artist code copied.");
     });
 
     loadSavedDesign();
