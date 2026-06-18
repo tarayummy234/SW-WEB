@@ -15,20 +15,6 @@
     <p>The official Sweet 16 music charts</p>
   </header>
 
-  <nav class="nav">
-    <a href="index.html">Home</a>
-    <a href="songs.html">Songs</a>
-    <a href="albums.html">Albums</a>
-    <a href="videos.html">Music Videos</a>
-    <a href="streaming.html">Streaming</a>
-    <a href="sales.html">Sales</a>
-    <a href="radio.html">Radio</a>
-    <a href="artists.html">Artists</a>
-    <a href="number-ones.html">All #1s</a>
-    <a href="year-end.html">Year-End</a>
-    <a href="certifications.html">Certifications</a>
-  </nav>
-
   <main>
     <section class="home-hero">
       <span class="home-kicker">Sweet 16 Charts</span>
@@ -41,67 +27,21 @@
       </p>
     </section>
 
-    <section class="home-grid">
-      <a class="home-card" href="songs.html">
-        <strong>Main Chart</strong>
-        <h3>Songs</h3>
-        <p>The main Sweet 16 songs chart.</p>
-      </a>
+    <div id="homeNews"></div>
 
-      <a class="home-card" href="albums.html">
-        <strong>Albums</strong>
-        <h3>Albums</h3>
-        <p>The weekly albums chart.</p>
-      </a>
+    <h2 class="home-section-title">Latest #1s</h2>
 
-      <a class="home-card" href="videos.html">
-        <strong>Videos</strong>
-        <h3>Music Videos</h3>
-        <p>The biggest music videos of the week.</p>
-      </a>
-
-      <a class="home-card" href="streaming.html">
-        <strong>Streaming</strong>
-        <h3>Streaming</h3>
-        <p>Track the songs leading in streams.</p>
-      </a>
-
-      <a class="home-card" href="sales.html">
-        <strong>Sales</strong>
-        <h3>Sales</h3>
-        <p>Pure sales leaders and digital performance.</p>
-      </a>
-
-      <a class="home-card" href="radio.html">
-        <strong>Radio</strong>
-        <h3>Radio</h3>
-        <p>Audience and airplay leaders.</p>
-      </a>
-
-      <a class="home-card" href="artists.html">
-        <strong>Database</strong>
-        <h3>Artists</h3>
-        <p>View every artist’s full chart history.</p>
-      </a>
-
-      <a class="home-card" href="number-ones.html">
-        <strong>Records</strong>
-        <h3>All #1s</h3>
-        <p>Every #1 song, album, video, and chart leader.</p>
-      </a>
-
-      <a class="home-card" href="year-end.html">
-        <strong>Annual</strong>
-        <h3>Year-End</h3>
-        <p>The biggest chart entries by year.</p>
-      </a>
-
-      <a class="home-card" href="certifications.html">
-        <strong>Units</strong>
-        <h3>Certifications</h3>
-        <p>Gold, platinum, diamond, and ruby certifications.</p>
-      </a>
+    <section id="homeChartPreviews" class="home-preview-grid">
+      <p class="loading-message">Loading latest #1 chart previews...</p>
     </section>
   </main>
+
+  <audio id="audioPlayer" class="audio-player" controls></audio>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="config.js"></script>
+  <script src="artist-data.js"></script>
+  <script src="site-data.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
