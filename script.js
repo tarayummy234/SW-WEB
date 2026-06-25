@@ -2109,3 +2109,704 @@ document.addEventListener("DOMContentLoaded", () => {
     initNumberOnesPage();
   }
 });
+
+/* =========================================================
+   SWEET 16 THEME + PREVIEW + HOME CARD PATCH
+   Paste at the VERY BOTTOM of script.js
+========================================================= */
+
+const SWEET16_THEME_PAGE_KEYS = [
+  "home",
+  "songs",
+  "albums",
+  "streaming",
+  "sales",
+  "radio",
+  "videos",
+  "artists",
+  "number-ones",
+  "year-end",
+  "certifications",
+  "designer",
+  "admin"
+];
+
+const SWEET16_DEFAULT_PAGE_THEMES = {
+  home: {
+    pageBg: "#22171a",
+    pageText: "#ffffff",
+    cardBg: "#6b5256",
+    cardText: "#ffffff",
+    accent: "#f0a7b3",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  songs: {
+    pageBg: "#e9a8a5",
+    pageText: "#ffffff",
+    cardBg: "#050505",
+    cardText: "#ffffff",
+    accent: "#aab0b4",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  albums: {
+    pageBg: "#1d1422",
+    pageText: "#ffffff",
+    cardBg: "#120d17",
+    cardText: "#ffffff",
+    accent: "#9b59ff",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  streaming: {
+    pageBg: "#101a14",
+    pageText: "#ffffff",
+    cardBg: "#0a110d",
+    cardText: "#ffffff",
+    accent: "#2ecc71",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  sales: {
+    pageBg: "#211c0b",
+    pageText: "#ffffff",
+    cardBg: "#141103",
+    cardText: "#ffffff",
+    accent: "#f1c40f",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  radio: {
+    pageBg: "#0f1724",
+    pageText: "#ffffff",
+    cardBg: "#09111b",
+    cardText: "#ffffff",
+    accent: "#3498db",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  videos: {
+    pageBg: "#24111b",
+    pageText: "#ffffff",
+    cardBg: "#150913",
+    cardText: "#ffffff",
+    accent: "#ff4fa3",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  artists: {
+    pageBg: "#151515",
+    pageText: "#ffffff",
+    cardBg: "#080808",
+    cardText: "#ffffff",
+    accent: "#ffffff",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  "number-ones": {
+    pageBg: "#161616",
+    pageText: "#ffffff",
+    cardBg: "#0b0b0b",
+    cardText: "#ffffff",
+    accent: "#ffffff",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  "year-end": {
+    pageBg: "#e9a8a5",
+    pageText: "#ffffff",
+    cardBg: "#050505",
+    cardText: "#ffffff",
+    accent: "#ffd54a",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  certifications: {
+    pageBg: "#e9a8a5",
+    pageText: "#ffffff",
+    cardBg: "#050505",
+    cardText: "#ffffff",
+    accent: "#ffffff",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  designer: {
+    pageBg: "#121212",
+    pageText: "#ffffff",
+    cardBg: "#0a0a0a",
+    cardText: "#ffffff",
+    accent: "#ffffff",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  },
+  admin: {
+    pageBg: "#121212",
+    pageText: "#ffffff",
+    cardBg: "#0a0a0a",
+    cardText: "#ffffff",
+    accent: "#ffffff",
+    headingFont: "inherit",
+    bodyFont: "inherit"
+  }
+};
+
+function sweet16DeepMerge(base, override) {
+  const out = { ...base };
+  Object.keys(override || {}).forEach(key => {
+    const baseValue = out[key];
+    const overrideValue = override[key];
+
+    if (
+      baseValue &&
+      overrideValue &&
+      typeof baseValue === "object" &&
+      typeof overrideValue === "object" &&
+      !Array.isArray(baseValue) &&
+      !Array.isArray(overrideValue)
+    ) {
+      out[key] = sweet16DeepMerge(baseValue, overrideValue);
+    } else {
+      out[key] = overrideValue;
+    }
+  });
+  return out;
+}
+
+function normalizePageThemes(rawThemes = {}) {
+  const themes = {};
+
+  SWEET16_THEME_PAGE_KEYS.forEach(key => {
+    themes[key] = {
+      ...SWEET16_DEFAULT_PAGE_THEMES[key],
+      ...(rawThemes[key] || {})
+    };
+  });
+
+  return themes;
+}
+
+function getCurrentSweet16PageKey() {
+  if (document.body.dataset.page) return document.body.dataset.page;
+  if (document.body.dataset.chart) return document.body.dataset.chart;
+
+  const file = location.pathname.split("/").pop() || "index.html";
+  if (file === "" || file === "index.html") return "home";
+  if (file === "songs.html") return "songs";
+  if (file === "albums.html") return "albums";
+  if (file === "streaming.html") return "streaming";
+  if (file === "sales.html") return "sales";
+  if (file === "radio.html") return "radio";
+  if (file === "videos.html") return "videos";
+  if (file === "artists.html") return "artists";
+  if (file === "number-ones.html") return "number-ones";
+  if (file === "year-end.html") return "year-end";
+  if (file === "certifications.html") return "certifications";
+  if (file === "designer.html") return "designer";
+  if (file === "admin.html") return "admin";
+  return "home";
+}
+
+function getSiteSettings() {
+  let saved = {};
+  try {
+    saved = JSON.parse(localStorage.getItem("sweet16SiteSettings") || "{}");
+  } catch (error) {
+    saved = {};
+  }
+
+  const merged = sweet16DeepMerge(
+    {
+      ...DEFAULT_SITE_SETTINGS,
+      pageThemes: SWEET16_DEFAULT_PAGE_THEMES
+    },
+    sweet16DeepMerge(window.SWEET16_SETTINGS || {}, saved || {})
+  );
+
+  merged.pageThemes = normalizePageThemes(merged.pageThemes || {});
+  return merged;
+}
+
+function applyCurrentPageTheme(settings) {
+  const pageKey = getCurrentSweet16PageKey();
+  const theme = (settings.pageThemes && settings.pageThemes[pageKey]) || SWEET16_DEFAULT_PAGE_THEMES[pageKey] || SWEET16_DEFAULT_PAGE_THEMES.home;
+
+  document.documentElement.style.setProperty("--page-bg", theme.pageBg || "#121212");
+  document.documentElement.style.setProperty("--page-text", theme.pageText || "#ffffff");
+  document.documentElement.style.setProperty("--page-card-bg", theme.cardBg || "#0a0a0a");
+  document.documentElement.style.setProperty("--page-card-text", theme.cardText || "#ffffff");
+  document.documentElement.style.setProperty("--page-accent", theme.accent || "#ffffff");
+  document.documentElement.style.setProperty("--accent", theme.accent || "#ffffff");
+  document.documentElement.style.setProperty("--accent-soft", `${(theme.accent || "#ffffff")}28`);
+
+  if (theme.headingFont && theme.headingFont !== "inherit") {
+    document.documentElement.style.setProperty("--page-heading-font", theme.headingFont);
+  } else {
+    document.documentElement.style.setProperty("--page-heading-font", "inherit");
+  }
+
+  if (theme.bodyFont && theme.bodyFont !== "inherit") {
+    document.documentElement.style.setProperty("--page-body-font", theme.bodyFont);
+  } else {
+    document.documentElement.style.setProperty("--page-body-font", "inherit");
+  }
+}
+
+function applySiteSettings() {
+  const settings = getSiteSettings();
+
+  applyCurrentPageTheme(settings);
+
+  const headerTitle = document.querySelector(".site-header h1");
+  if (headerTitle && settings.siteTitle) {
+    headerTitle.textContent = settings.siteTitle;
+  }
+
+  const headerTagline = document.querySelector(".site-header p");
+  if (
+    headerTagline &&
+    settings.siteTagline &&
+    (document.body.dataset.page === "home" || document.body.dataset.page === "admin")
+  ) {
+    headerTagline.textContent = settings.siteTagline;
+  }
+
+  renderHomeNews(settings);
+}
+
+/* ---------- audio preview force buttons ---------- */
+
+function ensurePreviewButtons() {
+  document.querySelectorAll(".cover-wrap.has-preview").forEach(cover => {
+    if (!cover.dataset.audio) return;
+
+    let button = cover.querySelector(".play-button");
+    if (!button) {
+      button = document.createElement("button");
+      button.className = "preview-button play-button";
+      button.type = "button";
+      button.textContent = "▶";
+      button.setAttribute("aria-label", "Play preview");
+      button.dataset.audio = cover.dataset.audio;
+      cover.appendChild(button);
+    }
+  });
+}
+
+function activateButtons() {
+  ensurePreviewButtons();
+
+  let audioPlayer = document.getElementById("audioPlayer");
+
+  if (!audioPlayer) {
+    audioPlayer = document.createElement("audio");
+    audioPlayer.id = "audioPlayer";
+    audioPlayer.className = "audio-player";
+    audioPlayer.preload = "none";
+    document.body.appendChild(audioPlayer);
+  }
+
+  audioPlayer.controls = false;
+  audioPlayer.removeAttribute("controls");
+  audioPlayer.style.display = "none";
+
+  function resetButtons() {
+    document.querySelectorAll(".play-button").forEach(button => {
+      button.textContent = "▶";
+      button.classList.remove("is-playing");
+    });
+  }
+
+  audioPlayer.onpause = resetButtons;
+  audioPlayer.onended = resetButtons;
+
+  function playPreview(audioUrl, clickedButton = null) {
+    if (!audioUrl) return;
+
+    const absolute = new URL(audioUrl, location.href).href;
+    const alreadyPlaying = audioPlayer.src === absolute && !audioPlayer.paused;
+
+    if (alreadyPlaying) {
+      audioPlayer.pause();
+      resetButtons();
+      return;
+    }
+
+    audioPlayer.src = audioUrl;
+    audioPlayer.play().then(() => {
+      resetButtons();
+      if (clickedButton) {
+        clickedButton.textContent = "❚❚";
+        clickedButton.classList.add("is-playing");
+      }
+    }).catch(error => {
+      console.error("Preview could not play:", error);
+      resetButtons();
+    });
+  }
+
+  document.querySelectorAll(".play-button").forEach(button => {
+    if (button.dataset.previewBound === "true") return;
+    button.dataset.previewBound = "true";
+
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      playPreview(button.dataset.audio, button);
+    });
+  });
+
+  document.querySelectorAll(".cover-wrap.has-preview").forEach(cover => {
+    if (cover.dataset.previewBound === "true") return;
+    cover.dataset.previewBound = "true";
+
+    cover.addEventListener("click", event => {
+      if (event.target.closest("a")) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      const button = cover.querySelector(".play-button");
+      playPreview(cover.dataset.audio, button);
+    });
+  });
+
+  document.querySelectorAll(".expand-button").forEach(button => {
+    if (button.dataset.expandBound === "true") return;
+    button.dataset.expandBound = "true";
+
+    button.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const runId = button.dataset.run;
+      const runBox = document.getElementById(runId);
+      if (!runBox) return;
+
+      runBox.classList.toggle("open");
+      button.textContent = runBox.classList.contains("open") ? "−" : "+";
+    });
+  });
+}
+
+/* ---------- homepage latest #1s ---------- */
+
+function getEntryRunStats(item, rows) {
+  const key = makeKey(item.title, item.artistRaw);
+
+  const run = rows
+    .filter(row => makeKey(row.title, row.artistRaw) === key)
+    .sort((a, b) => getWeekIndex(a) - getWeekIndex(b));
+
+  return {
+    weeksAtOne: run.filter(row => row.position === 1).length,
+    totalWeeks: run.length,
+    lastWeek: run[0] ? run[0].week : "—"
+  };
+}
+
+function getLatestWeekRows(rows, chartType) {
+  const weeks = getValidWeeks(rows);
+  const latestWeek = weeks[0];
+  if (!latestWeek) return [];
+  return rows
+    .filter(row => row.week === latestWeek)
+    .sort((a, b) => a.position - b.position);
+}
+
+function getSupportMetricsForSong(songItem, chartRowsMap) {
+  const key = makeKey(songItem.title, songItem.artistRaw);
+
+  function matchMetric(chartType) {
+    const rows = chartRowsMap[chartType] || [];
+    const latestRows = getLatestWeekRows(rows, chartType);
+    const found = latestRows.find(row => makeKey(row.title, row.artistRaw) === key);
+    return found ? formatMetric(found) : "—";
+  }
+
+  return {
+    streaming: matchMetric("streaming"),
+    sales: matchMetric("sales"),
+    radio: matchMetric("radio")
+  };
+}
+
+function renderHomePreviewCard(item, chartType, week, stats, supportMetrics = null) {
+  const metric = formatMetric(item);
+  const label = SHORT_CHART_LABELS[chartType] || chartType;
+
+  return `
+    <article class="home-preview-card format-${escapeHTML(chartType)}">
+      <div class="home-preview-head">
+        <span class="home-format-pill">${escapeHTML(label)}</span>
+        <span class="home-week-pill">${escapeHTML(week)}</span>
+      </div>
+
+      <div class="home-preview-main">
+        <div class="cover-wrap ${item.audio ? "has-preview" : ""}" ${item.audio ? `data-audio="${escapeHTML(item.audio)}"` : ""}>
+          ${
+            item.cover
+              ? `<img class="cover" src="${escapeHTML(item.cover)}" alt="${escapeHTML(item.title)} cover">`
+              : `<div class="cover"></div>`
+          }
+          ${
+            item.audio
+              ? `<button class="preview-button play-button" data-audio="${escapeHTML(item.audio)}" aria-label="Play preview">▶</button>`
+              : ""
+          }
+        </div>
+
+        <div class="home-preview-info">
+          <h3>#1 ${escapeHTML(item.title)}</h3>
+          <p>${escapeHTML(item.artistRaw)}</p>
+          ${metric ? `<strong>${escapeHTML(metric)}</strong>` : ""}
+        </div>
+      </div>
+
+      <div class="home-preview-stats">
+        <div><span>Weeks at #1</span><strong>${escapeHTML(stats.weeksAtOne)}</strong></div>
+        <div><span>Total Weeks</span><strong>${escapeHTML(stats.totalWeeks)}</strong></div>
+        <div><span>Last Week</span><strong>${escapeHTML(stats.lastWeek)}</strong></div>
+      </div>
+
+      ${
+        chartType === "songs" && supportMetrics
+          ? `
+            <div class="home-support-metrics">
+              <div><span>Streaming</span><strong>${escapeHTML(supportMetrics.streaming)}</strong></div>
+              <div><span>Sales</span><strong>${escapeHTML(supportMetrics.sales)}</strong></div>
+              <div><span>Radio</span><strong>${escapeHTML(supportMetrics.radio)}</strong></div>
+            </div>
+          `
+          : ""
+      }
+    </article>
+  `;
+}
+
+async function initHomeChartPreviews() {
+  const grid = document.getElementById("homeChartPreviews");
+  if (!grid || typeof SHEETS === "undefined") return;
+
+  grid.innerHTML = `<p class="loading-message">Loading latest #1 chart previews...</p>`;
+
+  const chartRowsMap = {};
+
+  await Promise.all(
+    SWEET16_CHART_PAGES.map(async chartType => {
+      try {
+        chartRowsMap[chartType] = await loadCSV(SHEETS[chartType], chartType);
+      } catch (error) {
+        console.error(`Could not load homepage preview for ${chartType}`, error);
+        chartRowsMap[chartType] = [];
+      }
+    })
+  );
+
+  const cards = SWEET16_CHART_PAGES.map(chartType => {
+    const rows = chartRowsMap[chartType] || [];
+    const weeks = getValidWeeks(rows);
+    const latestWeek = weeks[0];
+
+    if (!latestWeek) return "";
+
+    weekLists[chartType] = weeks;
+
+    const latestRows = rows
+      .filter(item => item.week === latestWeek)
+      .sort((a, b) => a.position - b.position);
+
+    const leader = latestRows.find(item => item.position === 1) || latestRows[0];
+    if (!leader) return "";
+
+    const stats = getEntryRunStats(leader, rows);
+    const supportMetrics =
+      chartType === "songs"
+        ? getSupportMetricsForSong(leader, chartRowsMap)
+        : null;
+
+    return renderHomePreviewCard(leader, chartType, latestWeek, stats, supportMetrics);
+  }).filter(Boolean);
+
+  grid.innerHTML = cards.length
+    ? cards.join("")
+    : `
+      <div class="panel">
+        <h3>No latest #1s found.</h3>
+        <p>Check your Google Sheets links in config.js.</p>
+      </div>
+    `;
+
+  activateButtons();
+}
+
+/* ---------- admin / designer page themes ---------- */
+
+function renderAdminThemeControls(settings) {
+  const form = document.getElementById("customizeForm");
+  if (!form || document.getElementById("pageThemeAdmin")) return;
+
+  const pageLabels = {
+    home: "Home",
+    songs: "Songs",
+    albums: "Albums",
+    streaming: "Streaming",
+    sales: "Sales",
+    radio: "Radio",
+    videos: "Videos",
+    artists: "Artists",
+    "number-ones": "All #1s",
+    "year-end": "Year-End",
+    certifications: "Certifications",
+    designer: "Designer",
+    admin: "Admin"
+  };
+
+  const section = document.createElement("section");
+  section.id = "pageThemeAdmin";
+  section.className = "admin-theme-panel";
+
+  section.innerHTML = `
+    <h2>Page Theme Controls</h2>
+    <p>Set a different background, card color, text color, accent color, and fonts for every page.</p>
+
+    <div class="page-theme-grid">
+      ${SWEET16_THEME_PAGE_KEYS.map(key => {
+        const theme = settings.pageThemes[key] || SWEET16_DEFAULT_PAGE_THEMES[key];
+        return `
+          <div class="page-theme-row" data-theme-key="${key}">
+            <div class="page-theme-title">${pageLabels[key]}</div>
+
+            <label>Page BG
+              <input class="theme-page-bg" type="color" value="${theme.pageBg || "#121212"}">
+            </label>
+
+            <label>Page Text
+              <input class="theme-page-text" type="color" value="${theme.pageText || "#ffffff"}">
+            </label>
+
+            <label>Card BG
+              <input class="theme-card-bg" type="color" value="${theme.cardBg || "#0a0a0a"}">
+            </label>
+
+            <label>Card Text
+              <input class="theme-card-text" type="color" value="${theme.cardText || "#ffffff"}">
+            </label>
+
+            <label>Accent
+              <input class="theme-accent" type="color" value="${theme.accent || "#ffffff"}">
+            </label>
+
+            <label>Heading Font
+              <input class="theme-heading-font" type="text" value="${theme.headingFont || "inherit"}" placeholder="inherit or Inter, Arial, sans-serif">
+            </label>
+
+            <label>Body Font
+              <input class="theme-body-font" type="text" value="${theme.bodyFont || "inherit"}" placeholder="inherit or Inter, Arial, sans-serif">
+            </label>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+
+  form.insertAdjacentElement("beforeend", section);
+}
+
+function collectPageThemeSettings() {
+  const pageThemes = {};
+
+  document.querySelectorAll("[data-theme-key]").forEach(row => {
+    const key = row.dataset.themeKey;
+    pageThemes[key] = {
+      pageBg: row.querySelector(".theme-page-bg").value,
+      pageText: row.querySelector(".theme-page-text").value,
+      cardBg: row.querySelector(".theme-card-bg").value,
+      cardText: row.querySelector(".theme-card-text").value,
+      accent: row.querySelector(".theme-accent").value,
+      headingFont: row.querySelector(".theme-heading-font").value || "inherit",
+      bodyFont: row.querySelector(".theme-body-font").value || "inherit"
+    };
+  });
+
+  return pageThemes;
+}
+
+function initAdminPage() {
+  const form = document.getElementById("customizeForm");
+  if (!form) return;
+
+  const settings = getSiteSettings();
+
+  document.getElementById("siteTitle").value = settings.siteTitle || "";
+  document.getElementById("siteTagline").value = settings.siteTagline || "";
+  document.getElementById("newsTitle").value = settings.newsTitle || "";
+  document.getElementById("newsBody").value = settings.newsBody || "";
+  document.getElementById("newsImage").value = settings.newsImage || "";
+  document.getElementById("accentColor").value = settings.accentColor || "#ffffff";
+
+  if (typeof renderAdminPageStatusControls === "function") {
+    renderAdminPageStatusControls(settings);
+  }
+
+  renderAdminThemeControls(settings);
+
+  const exportBox = document.getElementById("settingsExport");
+
+  function collectSettings() {
+    return {
+      siteTitle: document.getElementById("siteTitle").value,
+      siteTagline: document.getElementById("siteTagline").value,
+      newsTitle: document.getElementById("newsTitle").value,
+      newsBody: document.getElementById("newsBody").value,
+      newsImage: document.getElementById("newsImage").value,
+      accentColor: document.getElementById("accentColor").value,
+      pageStatus: typeof collectPageStatusSettings === "function" ? collectPageStatusSettings() : {},
+      pageThemes: collectPageThemeSettings()
+    };
+  }
+
+  function updateExportBox(nextSettings) {
+    if (!exportBox) return;
+    exportBox.value = `window.SWEET16_SETTINGS = ${JSON.stringify(nextSettings, null, 2)};`;
+  }
+
+  updateExportBox(settings);
+
+  form.addEventListener("submit", event => {
+    event.preventDefault();
+
+    const nextSettings = collectSettings();
+    localStorage.setItem("sweet16SiteSettings", JSON.stringify(nextSettings));
+    updateExportBox(nextSettings);
+    applySiteSettings();
+
+    const status = document.getElementById("adminStatus");
+    if (status) {
+      status.textContent = "Saved in this browser. Copy the export code into site-settings.js to make it public.";
+    }
+  });
+
+  const resetButton = document.getElementById("resetCustomize");
+  if (resetButton && !resetButton.dataset.themeBound) {
+    resetButton.dataset.themeBound = "true";
+    resetButton.addEventListener("click", () => {
+      localStorage.removeItem("sweet16SiteSettings");
+      location.reload();
+    });
+  }
+}
+
+/* ---------- startup ---------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+  applySiteSettings();
+  activateButtons();
+
+  if (document.body.dataset.page === "home") {
+    initHomeChartPreviews();
+  }
+
+  if (document.body.dataset.page === "admin") {
+    initAdminPage();
+  }
+});
