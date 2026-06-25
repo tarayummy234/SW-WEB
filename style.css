@@ -2995,3 +2995,203 @@ audio#audioPlayer {
   opacity: 0.7 !important;
   pointer-events: none !important;
 }
+
+/* =========================================================
+   SWEET 16 THEME ENGINE CSS
+   Paste at the VERY BOTTOM of style.css
+========================================================= */
+
+:root {
+  --s16-page-bg: #121212;
+  --s16-page-text: #ffffff;
+  --s16-card-bg: #050505;
+  --s16-card-text: #ffffff;
+  --s16-accent: #ffffff;
+  --s16-heading-font: "Arial Black", Arial, sans-serif;
+  --s16-body-font: Arial, sans-serif;
+}
+
+html,
+body {
+  background: var(--s16-page-bg) !important;
+  color: var(--s16-page-text) !important;
+  font-family: var(--s16-body-font) !important;
+}
+
+body,
+p,
+span,
+a,
+button,
+select,
+input,
+textarea,
+label {
+  font-family: var(--s16-body-font) !important;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.site-header h1,
+.chart-top h2,
+.hero-title {
+  font-family: var(--s16-heading-font) !important;
+}
+
+.site-header,
+main,
+section {
+  color: var(--s16-page-text) !important;
+}
+
+.panel,
+.chart-top,
+.chart-list > *,
+.compact-chart-row,
+.home-preview-card,
+.home-news,
+.artist-card,
+.artist-panel,
+.artist-summary,
+.year-end-card,
+.year-end-card-clean,
+.certification-card,
+#chart > article,
+#chart > div,
+#numberOnesContent > article,
+#numberOnesContent > div,
+#yearEndChart > article,
+#yearEndChart > div,
+#certificationChart > article,
+#certificationChart > div {
+  background: var(--s16-card-bg) !important;
+  color: var(--s16-card-text) !important;
+  border-color: color-mix(in srgb, var(--s16-accent) 40%, transparent) !important;
+}
+
+.panel *,
+.chart-top *,
+.chart-list > * *,
+.compact-chart-row *,
+.home-preview-card *,
+.home-news *,
+.artist-card *,
+.artist-panel *,
+.artist-summary *,
+.year-end-card *,
+.year-end-card-clean *,
+.certification-card * {
+  color: inherit;
+}
+
+.position,
+.year-end-rank,
+.certification-rank,
+.home-preview-info strong,
+.compact-metric,
+.movement,
+a {
+  color: var(--s16-accent) !important;
+}
+
+.s16-theme-studio {
+  width: min(1250px, calc(100% - 28px)) !important;
+  margin: 28px auto !important;
+  padding: 22px !important;
+  border-radius: 22px !important;
+  background: var(--s16-card-bg) !important;
+  color: var(--s16-card-text) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+}
+
+.s16-theme-studio h2 {
+  margin: 0 0 8px !important;
+  font-size: 28px !important;
+}
+
+.s16-theme-studio p {
+  margin: 0 0 18px !important;
+  opacity: 0.8 !important;
+}
+
+.s16-theme-grid {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.s16-theme-row {
+  display: grid !important;
+  grid-template-columns: 140px repeat(5, 105px) minmax(150px, 1fr) minmax(150px, 1fr) !important;
+  gap: 10px !important;
+  align-items: end !important;
+  padding: 14px !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,0.055) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+.s16-theme-row h3 {
+  margin: 0 !important;
+  font-size: 15px !important;
+}
+
+.s16-theme-row label {
+  display: grid !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+}
+
+.s16-theme-row input[type="text"] {
+  min-width: 0 !important;
+  width: 100% !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  background: #000 !important;
+  color: #fff !important;
+}
+
+.s16-theme-actions {
+  display: flex !important;
+  gap: 12px !important;
+  margin: 18px 0 !important;
+}
+
+.s16-theme-actions button {
+  border: none !important;
+  border-radius: 999px !important;
+  padding: 12px 18px !important;
+  background: var(--s16-accent) !important;
+  color: #000 !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+#s16ThemeExport {
+  width: 100% !important;
+  min-height: 260px !important;
+  border-radius: 14px !important;
+  padding: 14px !important;
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  font-family: monospace !important;
+  font-size: 12px !important;
+}
+
+@media (max-width: 980px) {
+  .s16-theme-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .s16-theme-row h3 {
+    grid-column: 1 / -1 !important;
+  }
+}
