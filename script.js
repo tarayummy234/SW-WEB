@@ -1747,42 +1747,55 @@ async function initHomeChartPreviews() {
 
   grid.innerHTML = `<p class="loading-message">Loading latest #1 chart previews...</p>`;
 
-  const results = await Promise.all(
+  const chartRowsMap = {};
+
+  await Promise.all(
     SWEET16_CHART_PAGES.map(async chartType => {
       try {
-        const rows = await loadCSV(SHEETS[chartType], chartType);
-        const weeks = getValidWeeks(rows);
-        const latestWeek = weeks[0];
-
-        if (!latestWeek) return "";
-
-        const currentRows = rows
-          .filter(item => item.week === latestWeek)
-          .sort((a, b) => a.position - b.position);
-
-        const leader = currentRows.find(item => item.position === 1) || currentRows[0];
-        if (!leader) return "";
-
-        return renderHomePreviewCard(leader, chartType, latestWeek);
+        chartRowsMap[chartType] = await loadCSV(SHEETS[chartType], chartType);
       } catch (error) {
         console.error(`Could not load homepage preview for ${chartType}`, error);
-        return "";
+        chartRowsMap[chartType] = [];
       }
     })
   );
 
-  const html = results.filter(Boolean).join("");
+  const cards = SWEET16_CHART_PAGES.map(chartType => {
+    const rows = chartRowsMap[chartType] || [];
+    const weeks = getValidWeeks(rows);
+    const latestWeek = weeks[0];
 
-  grid.innerHTML = html || `
-    <div class="panel">
-      <h3>No latest #1s found.</h3>
-      <p>Check your Google Sheets links in config.js.</p>
-    </div>
-  `;
+    if (!latestWeek) return "";
+
+    weekLists[chartType] = weeks;
+
+    const latestRows = rows
+      .filter(item => item.week === latestWeek)
+      .sort((a, b) => a.position - b.position);
+
+    const leader = latestRows.find(item => item.position === 1) || latestRows[0];
+    if (!leader) return "";
+
+    const stats = getEntryRunStats(leader, rows);
+    const supportMetrics =
+      chartType === "songs"
+        ? getSupportMetricsForSong(leader, chartRowsMap)
+        : null;
+
+    return renderHomePreviewCard(leader, chartType, latestWeek, stats, supportMetrics);
+  }).filter(Boolean);
+
+  grid.innerHTML = cards.length
+    ? cards.join("")
+    : `
+      <div class="panel">
+        <h3>No latest #1s found.</h3>
+        <p>Check your Google Sheets links in config.js.</p>
+      </div>
+    `;
 
   activateButtons();
 }
-
 /* ---------- All #1s page ---------- */
 
 function buildNumberOneEntries(chartType) {
