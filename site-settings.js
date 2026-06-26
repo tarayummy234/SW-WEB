@@ -43,7 +43,7 @@ window.SWEET16_SETTINGS = {
     },
     "artists": {
       "enabled": true,
-      "messageType": "maintenance",
+      "messageType": "coming-soon",
       "customMessage": ""
     },
     "number-ones": {
@@ -53,7 +53,7 @@ window.SWEET16_SETTINGS = {
     },
     "year-end": {
       "enabled": true,
-      "messageType": "maintenance",
+      "messageType": "coming-soon",
       "customMessage": ""
     },
     "certifications": {
@@ -63,8 +63,8 @@ window.SWEET16_SETTINGS = {
     },
     "designer": {
       "enabled": true,
-      "messageType": "other",
-      "customMessage": "Only Chart Team Allowed"
+      "messageType": "coming-soon",
+      "customMessage": ""
     },
     "admin": {
       "enabled": true,
