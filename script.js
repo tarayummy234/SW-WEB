@@ -3248,3 +3248,138 @@ document.addEventListener("DOMContentLoaded", () => {
     subtree: true
   });
 });
+
+/* =========================================================
+   SWEET 16 MOVEMENT + PAGE REOPEN PATCH
+   Paste at the VERY BOTTOM of script.js
+========================================================= */
+
+function s16NormalizeMovementText(text) {
+  return String(text || "")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, " ");
+}
+
+function s16ApplyMovementClasses() {
+  const possibleBadges = Array.from(document.querySelectorAll(
+    ".movement, .chart-movement, .compact-movement, .position-change, .movement-badge, .compact-chart-row > div, .compact-chart-row span"
+  ));
+
+  possibleBadges.forEach(el => {
+    const text = s16NormalizeMovementText(el.textContent);
+
+    if (!text) return;
+
+    el.classList.remove(
+      "s16-move-new",
+      "s16-move-up",
+      "s16-move-down",
+      "s16-move-reentry",
+      "s16-move-current"
+    );
+
+    if (text === "NEW") {
+      el.classList.add("s16-move-badge", "s16-move-new");
+    } else if (text.includes("▲") || text.includes("RISE") || text.includes("UP")) {
+      el.classList.add("s16-move-badge", "s16-move-up");
+    } else if (text.includes("▼") || text.includes("FALL") || text.includes("DOWN")) {
+      el.classList.add("s16-move-badge", "s16-move-down");
+    } else if (text.includes("RE-ENTRY") || text.includes("RE ENTRY") || text.includes("RE-ENTER") || text.includes("RE ENTER")) {
+      el.classList.add("s16-move-badge", "s16-move-reentry");
+    } else if (text === "▬" || text === "—" || text === "-" || text.includes("CURRENT") || text.includes("SAME")) {
+      el.classList.add("s16-move-badge", "s16-move-current");
+    }
+  });
+}
+
+function s16GetSettingsForPagePatch() {
+  try {
+    return JSON.parse(localStorage.getItem("sweet16SiteSettings") || "{}");
+  } catch (error) {
+    return {};
+  }
+}
+
+function s16SaveSettingsForPagePatch(settings) {
+  localStorage.setItem("sweet16SiteSettings", JSON.stringify(settings));
+}
+
+function s16EnableAllPages() {
+  const settings = s16GetSettingsForPagePatch();
+
+  const keys = [
+    "home",
+    "songs",
+    "albums",
+    "streaming",
+    "sales",
+    "radio",
+    "videos",
+    "artists",
+    "number-ones",
+    "year-end",
+    "certifications",
+    "designer",
+    "admin"
+  ];
+
+  settings.pageStatus = settings.pageStatus || {};
+
+  keys.forEach(key => {
+    settings.pageStatus[key] = {
+      ...(settings.pageStatus[key] || {}),
+      enabled: true,
+      messageType: "coming-soon",
+      customMessage: ""
+    };
+  });
+
+  s16SaveSettingsForPagePatch(settings);
+
+  alert("All pages were re-enabled in this browser. Copy/export your settings again if you want this public.");
+  location.reload();
+}
+
+function s16AddReopenPagesButton() {
+  const page =
+    document.body.dataset.page ||
+    document.body.dataset.chart ||
+    location.pathname.split("/").pop().replace(".html", "");
+
+  if (page !== "admin" && page !== "designer") return;
+  if (document.getElementById("s16EnableAllPages")) return;
+
+  const target =
+    document.getElementById("s16ThemeStudio") ||
+    document.querySelector("main") ||
+    document.body;
+
+  const box = document.createElement("section");
+  box.className = "s16-page-rescue-box";
+  box.innerHTML = `
+    <h2>Page Access Rescue</h2>
+    <p>If you disabled pages and they will not open again, use this to re-enable every page in this browser.</p>
+    <button type="button" id="s16EnableAllPages">Re-open All Pages</button>
+  `;
+
+  target.insertAdjacentElement("beforebegin", box);
+
+  document.getElementById("s16EnableAllPages").addEventListener("click", s16EnableAllPages);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  s16ApplyMovementClasses();
+  s16AddReopenPagesButton();
+
+  const movementObserver = new MutationObserver(() => {
+    s16ApplyMovementClasses();
+    s16AddReopenPagesButton();
+  });
+
+  movementObserver.observe(document.body, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+});
