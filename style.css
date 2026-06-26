@@ -3357,3 +3357,501 @@ a {
   font-weight: 950 !important;
   cursor: pointer !important;
 }
+
+/* =========================================================
+   SWEET 16 FINAL BUG FIX CSS
+========================================================= */
+
+:root {
+  --s16-page-bg: #121212;
+  --s16-page-text: #ffffff;
+  --s16-card-bg: #0a0a0a;
+  --s16-card-text: #ffffff;
+  --s16-accent: #ffffff;
+  --s16-heading-font: "Arial Black", Arial, sans-serif;
+  --s16-body-font: Arial, sans-serif;
+}
+
+html,
+body {
+  background: var(--s16-page-bg) !important;
+  color: var(--s16-page-text) !important;
+  font-family: var(--s16-body-font) !important;
+}
+
+body,
+p,
+span,
+a,
+button,
+select,
+input,
+textarea,
+label {
+  font-family: var(--s16-body-font) !important;
+}
+
+h1, h2, h3, h4, h5, h6,
+.site-header h1,
+.chart-top h2,
+.hero-title {
+  font-family: var(--s16-heading-font) !important;
+}
+
+/* Shared card theming */
+
+.panel,
+.chart-top,
+.compact-chart-row,
+.home-preview-card,
+.home-news,
+.artist-card,
+.artist-panel,
+.artist-summary,
+.year-end-card,
+.year-end-card-clean,
+.certification-card,
+#chart > article,
+#chart > div,
+#numberOnesContent > article,
+#numberOnesContent > div,
+#yearEndChart > article,
+#yearEndChart > div,
+#certificationChart > article,
+#certificationChart > div {
+  background: var(--s16-card-bg) !important;
+  color: var(--s16-card-text) !important;
+}
+
+a,
+.position,
+.year-end-rank,
+.certification-rank,
+.compact-metric,
+.movement,
+.home-preview-info strong {
+  color: var(--s16-accent) !important;
+}
+
+/* Image frames: smooth square corners everywhere */
+
+.cover-wrap,
+.cover,
+.year-end-cover,
+.certification-cover,
+.home-news .cover,
+.home-preview-card .cover,
+.artist-avatar img,
+.artist-image img,
+.artist-profile img {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.cover,
+.year-end-cover,
+.certification-cover,
+.home-news .cover,
+.home-preview-card .cover {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.cover-wrap {
+  position: relative !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+}
+
+/* Preview buttons show only on hover or while playing */
+
+.preview-button,
+.play-button {
+  position: absolute !important;
+  right: 8px !important;
+  bottom: 8px !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  background: rgba(0,0,0,.82) !important;
+  color: #fff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  z-index: 20 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(.92) !important;
+  transition: opacity .18s ease, transform .18s ease, background .18s ease, color .18s ease !important;
+}
+
+.cover-wrap:hover .preview-button,
+.cover-wrap:hover .play-button,
+.preview-button.is-playing,
+.play-button.is-playing,
+.preview-button.is-loading,
+.play-button.is-loading {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: scale(1) !important;
+}
+
+.preview-button.is-playing,
+.play-button.is-playing,
+.cover-wrap:hover .preview-button,
+.cover-wrap:hover .play-button {
+  background: #fff !important;
+  color: #000 !important;
+}
+
+/* Home news */
+
+.home-news {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.3fr) minmax(260px, .7fr) !important;
+  gap: 18px !important;
+  padding: 22px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  margin: 18px auto !important;
+}
+
+.home-news-copy {
+  min-width: 0 !important;
+}
+
+.home-news-kicker {
+  display: inline-block !important;
+  margin-bottom: 8px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+  color: var(--s16-accent) !important;
+}
+
+.home-news-copy h2 {
+  margin: 0 0 10px !important;
+  font-size: clamp(28px, 4vw, 54px) !important;
+}
+
+.home-news-copy p {
+  margin: 0 0 14px !important;
+  max-width: 56ch !important;
+}
+
+.home-news-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+  padding: 12px 18px !important;
+  background: var(--s16-accent) !important;
+  color: #000 !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+}
+
+.home-news-song {
+  display: grid !important;
+  grid-template-columns: 96px minmax(0, 1fr) !important;
+  gap: 14px !important;
+  align-items: center !important;
+}
+
+.home-news-song .cover-wrap {
+  width: 96px !important;
+  height: 96px !important;
+}
+
+.home-news-song-info h3 {
+  margin: 0 0 4px !important;
+  font-size: 20px !important;
+}
+
+.home-news-song-info p {
+  margin: 0 !important;
+}
+
+/* Artist + Certifications row repair */
+
+body[data-page="artists"] article,
+body[data-page="artists"] .artist-entry,
+body[data-page="artists"] .artist-card,
+body[data-page="artists"] .artist-panel article,
+body[data-page="certifications"] article,
+body[data-page="certifications"] .certification-card,
+body[data-page="certifications"] #certificationChart > div,
+body[data-page="certifications"] #certificationChart > article {
+  display: grid !important;
+  grid-template-columns: 44px 64px minmax(0, 1fr) auto !important;
+  gap: 14px !important;
+  align-items: center !important;
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+  min-height: 88px !important;
+}
+
+body[data-page="artists"] article h3,
+body[data-page="artists"] .artist-entry h3,
+body[data-page="artists"] .artist-card h3,
+body[data-page="artists"] .artist-panel article h3,
+body[data-page="certifications"] article h3,
+body[data-page="certifications"] .certification-card h3 {
+  display: block !important;
+  margin: 0 0 4px !important;
+  color: #fff !important;
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+}
+
+body[data-page="artists"] article p,
+body[data-page="artists"] .artist-entry p,
+body[data-page="artists"] .artist-card p,
+body[data-page="artists"] .artist-panel article p,
+body[data-page="certifications"] article p,
+body[data-page="certifications"] .certification-card p,
+body[data-page="artists"] article a,
+body[data-page="certifications"] article a {
+  display: block !important;
+  margin: 0 !important;
+  color: rgba(255,255,255,.82) !important;
+  font-size: 13px !important;
+  white-space: normal !important;
+}
+
+body[data-page="artists"] .cover-wrap,
+body[data-page="certifications"] .cover-wrap {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+body[data-page="artists"] .cover,
+body[data-page="certifications"] .cover,
+body[data-page="certifications"] .certification-cover {
+  width: 64px !important;
+  height: 64px !important;
+}
+
+/* Certifications top summary */
+
+body[data-page="certifications"] .panel,
+body[data-page="certifications"] .certifications-summary,
+body[data-page="certifications"] .summary-grid > div {
+  background: var(--s16-card-bg) !important;
+  color: var(--s16-card-text) !important;
+}
+
+/* Movement colors permanent */
+
+.s16-move-badge,
+.movement,
+.chart-movement,
+.position-change,
+.movement-badge {
+  border-radius: 999px !important;
+  padding: 7px 10px !important;
+  font-weight: 900 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  min-width: 44px !important;
+}
+
+.s16-move-new {
+  background: rgba(100,210,255,.18) !important;
+  color: #64d2ff !important;
+  border: 1px solid rgba(100,210,255,.45) !important;
+}
+
+.s16-move-up {
+  background: rgba(46,204,113,.18) !important;
+  color: #2ecc71 !important;
+  border: 1px solid rgba(46,204,113,.45) !important;
+}
+
+.s16-move-down {
+  background: rgba(255,77,77,.18) !important;
+  color: #ff4d4d !important;
+  border: 1px solid rgba(255,77,77,.45) !important;
+}
+
+.s16-move-reentry {
+  background: rgba(180,104,255,.18) !important;
+  color: #b468ff !important;
+  border: 1px solid rgba(180,104,255,.45) !important;
+}
+
+.s16-move-current {
+  background: rgba(180,180,180,.15) !important;
+  color: #b8b8b8 !important;
+  border: 1px solid rgba(180,180,180,.35) !important;
+}
+
+/* Admin */
+
+.s16-admin-panel,
+.s16-designer-panel {
+  width: min(1280px, calc(100% - 28px)) !important;
+  margin: 28px auto !important;
+  padding: 22px !important;
+  border-radius: 22px !important;
+  background: var(--s16-card-bg) !important;
+  color: var(--s16-card-text) !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+}
+
+.s16-admin-grid,
+.s16-theme-grid {
+  display: grid !important;
+  gap: 14px !important;
+  margin-top: 14px !important;
+}
+
+.s16-admin-row,
+.s16-theme-row {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 14px !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.04) !important;
+  border: 1px solid rgba(255,255,255,.09) !important;
+}
+
+.s16-admin-row {
+  grid-template-columns: 160px 120px 190px 1fr !important;
+  align-items: center !important;
+}
+
+.s16-theme-row {
+  grid-template-columns: 140px repeat(5, 110px) 160px 160px 1fr !important;
+  align-items: end !important;
+}
+
+.s16-admin-row h3,
+.s16-theme-row h3 {
+  margin: 0 !important;
+}
+
+.s16-admin-actions,
+.s16-designer-actions {
+  display: flex !important;
+  gap: 12px !important;
+  margin: 18px 0 !important;
+}
+
+.s16-admin-actions button,
+.s16-designer-actions button {
+  border: none !important;
+  border-radius: 999px !important;
+  padding: 12px 18px !important;
+  background: var(--s16-accent) !important;
+  color: #000 !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+#s16AdminExport,
+#s16DesignerExport {
+  width: 100% !important;
+  min-height: 240px !important;
+  background: #000 !important;
+  color: #fff !important;
+  border-radius: 14px !important;
+  padding: 14px !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+  font-family: monospace !important;
+}
+
+.s16-designer-site,
+.s16-news-grid {
+  display: grid !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+}
+
+.s16-news-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.s16-page-preview {
+  padding: 12px !important;
+  border-radius: 14px !important;
+  min-height: 110px !important;
+}
+
+.s16-page-preview-header {
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  font-weight: 900 !important;
+  margin-bottom: 10px !important;
+}
+
+.s16-page-preview-card {
+  border: 1px solid currentColor !important;
+  border-radius: 14px !important;
+  padding: 12px !important;
+}
+
+.s16-page-preview-card span {
+  display: block !important;
+  font-size: 11px !important;
+  margin-bottom: 6px !important;
+  opacity: .76 !important;
+}
+
+.s16-page-preview-card strong {
+  display: block !important;
+  font-size: 16px !important;
+}
+
+.s16-closed-page {
+  max-width: 720px !important;
+  margin: 60px auto !important;
+  padding: 28px !important;
+  text-align: center !important;
+  border-radius: 18px !important;
+  background: var(--s16-card-bg) !important;
+  border: 1px solid rgba(255,255,255,.1) !important;
+}
+
+.s16-closed-page a {
+  display: inline-block !important;
+  margin-top: 12px !important;
+  padding: 12px 18px !important;
+  border-radius: 999px !important;
+  background: var(--s16-accent) !important;
+  color: #000 !important;
+  font-weight: 900 !important;
+  text-decoration: none !important;
+}
+
+@media (max-width: 980px) {
+  .s16-admin-row,
+  .s16-theme-row,
+  .s16-news-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .home-news {
+    grid-template-columns: 1fr !important;
+  }
+
+  body[data-page="artists"] article,
+  body[data-page="artists"] .artist-entry,
+  body[data-page="certifications"] article,
+  body[data-page="certifications"] .certification-card {
+    grid-template-columns: 40px 56px minmax(0,1fr) !important;
+  }
+}
