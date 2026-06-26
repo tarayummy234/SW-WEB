@@ -3450,3 +3450,284 @@ document.addEventListener("DOMContentLoaded", () => {
     characterData: true
   });
 });
+
+/* =========================================================
+   SWEET 16 IMAGE + ARTIST + HOME BANNER EMERGENCY FIX
+   Paste at the VERY BOTTOM of script.js
+========================================================= */
+
+function s16CleanValue(value) {
+  return value === undefined || value === null ? "" : String(value).replaceAll('"', "").trim();
+}
+
+function s16LooksLikeImageUrl(value) {
+  const url = s16CleanValue(value);
+  if (!/^https?:\/\//i.test(url)) return false;
+
+  const lower = url.toLowerCase();
+
+  if (lower.includes("spotify.com/track")) return false;
+  if (lower.includes("spotify.com/album")) return false;
+  if (lower.includes("music.apple.com")) return false;
+  if (lower.includes("youtube.com/watch")) return false;
+  if (lower.includes("youtu.be/")) return false;
+
+  return (
+    /\.(jpg|jpeg|png|gif|webp)(\?|$)/i.test(lower) ||
+    lower.includes("is1-ssl.mzstatic.com") ||
+    lower.includes("is2-ssl.mzstatic.com") ||
+    lower.includes("is3-ssl.mzstatic.com") ||
+    lower.includes("is4-ssl.mzstatic.com") ||
+    lower.includes("is5-ssl.mzstatic.com") ||
+    lower.includes("i.scdn.co/image") ||
+    lower.includes("image-cdn-ak.spotifycdn.com") ||
+    lower.includes("ytimg.com/vi/") ||
+    lower.includes("googleusercontent.com") ||
+    lower.includes("wikimedia.org") ||
+    lower.includes("media.discordapp.net") ||
+    lower.includes("cdn.discordapp.com")
+  );
+}
+
+function s16PreferImageUrl(value, chartType = "") {
+  const url = s16CleanValue(value);
+  if (!s16LooksLikeImageUrl(url)) return "";
+
+  const lower = url.toLowerCase();
+
+  if (chartType !== "videos" && lower.includes("ytimg.com/vi/")) {
+    return "";
+  }
+
+  return url;
+}
+
+/* Override the old image finder.
+   This scans the whole row and supports Spotify/Apple image URLs without extensions. */
+function findImage(row, fallbackIndex = 8) {
+  const chartType = typeof getChartType === "function" ? getChartType() : "";
+
+  const preferredColumns = [
+    fallbackIndex,
+    8,  // common final cover
+    4,  // custom song cover
+    7,  // custom video cover
+    6,  // YouTube thumbnail
+    1,  // iTunes / possible image
+    2,  // Apple Music / possible image
+    3   // Spotify / possible image
+  ];
+
+  for (const index of preferredColumns) {
+    const found = s16PreferImageUrl(row[index], chartType);
+    if (found) return found;
+  }
+
+  for (const cell of row) {
+    const found = s16PreferImageUrl(cell, chartType);
+    if (found) return found;
+  }
+
+  return "";
+}
+
+/* Also override loadCSV so every chart type passes into the image finder correctly. */
+async function loadCSV(url, chartType) {
+  const finalUrl = url.includes("?") ? `${url}&cache=${Date.now()}` : `${url}?cache=${Date.now()}`;
+  const response = await fetch(finalUrl);
+  const text = await response.text();
+
+  if (!window.Papa) {
+    throw new Error("PapaParse is missing. Make sure papaparse is loaded before script.js.");
+  }
+
+  const parsed = Papa.parse(text, { skipEmptyLines: true });
+
+  return parsed.data
+    .map((row, index) => {
+      const fromFullName = splitFullName(row[2]);
+      const title = clean(row[5]) || fromFullName.title;
+      const artistRaw = clean(row[6]) || fromFullName.artist;
+      const metricRaw = getMetricRaw(row, chartType);
+      const metricNumber = getMetricNumber(row, chartType);
+
+      return {
+        index,
+        chartType,
+        week: clean(row[0]),
+        position: parsePosition(row[1]),
+        fullName: clean(row[2]),
+        metricRaw,
+        metricNumber,
+        title,
+        artistRaw,
+        artistCredits: splitArtists(artistRaw),
+        cover: findImage(row, chartType === "videos" ? 9 : 8),
+        audio: findPreviewAudio(row)
+      };
+    })
+    .filter(item => {
+      return (
+        item.week &&
+        !Number.isNaN(item.position) &&
+        item.position > 0 &&
+        item.title &&
+        item.artistRaw &&
+        item.artistCredits.length > 0
+      );
+    });
+}
+
+/* Read BOTH old settings and new settings so banner works either way. */
+function s16GetMergedSettingsForBanner() {
+  let saved = {};
+
+  try {
+    saved = JSON.parse(localStorage.getItem("sweet16SiteSettings") || "{}");
+  } catch (error) {
+    saved = {};
+  }
+
+  return {
+    ...(window.SWEET16_SETTINGS || {}),
+    ...saved
+  };
+}
+
+function s16GetHomeNewsData() {
+  const settings = s16GetMergedSettingsForBanner();
+  const homeNews = settings.homeNews || {};
+
+  return {
+    eyebrow: homeNews.eyebrow || "This Week on Sweet 16",
+    title: homeNews.title || settings.newsTitle || "Sweet 16 News",
+    body: homeNews.body || settings.newsBody || "Latest chart news will appear here.",
+    banner: homeNews.banner || settings.newsImage || "",
+    songTitle: homeNews.songTitle || "",
+    songArtist: homeNews.songArtist || "",
+    songCover: homeNews.songCover || homeNews.cover || "",
+    songAudio: homeNews.songAudio || homeNews.audio || "",
+    buttonText: homeNews.buttonText || "View Songs Chart",
+    link: homeNews.link || "songs.html"
+  };
+}
+
+function s16ForceHomeNewsBanner() {
+  const isHome =
+    document.body.dataset.page === "home" ||
+    location.pathname.endsWith("index.html") ||
+    location.pathname.endsWith("/");
+
+  if (!isHome) return;
+
+  const news = s16GetHomeNewsData();
+
+  let block = document.getElementById("homeNews");
+
+  if (!block) {
+    const hero = document.querySelector(".home-hero") || document.querySelector("main");
+    if (!hero) return;
+
+    block = document.createElement("section");
+    block.id = "homeNews";
+    hero.insertAdjacentElement("afterend", block);
+  }
+
+  block.className = "home-news s16-home-news-fixed";
+
+  block.style.backgroundImage = news.banner
+    ? `linear-gradient(90deg, rgba(0,0,0,.90), rgba(0,0,0,.52)), url("${news.banner}")`
+    : `linear-gradient(90deg, rgba(0,0,0,.94), rgba(0,0,0,.66))`;
+
+  block.innerHTML = `
+    <div class="home-news-copy">
+      <span class="home-news-kicker">${escapeHTML(news.eyebrow)}</span>
+      <h2>${escapeHTML(news.title)}</h2>
+      <p>${escapeHTML(news.body)}</p>
+      <a class="home-news-button" href="${escapeHTML(news.link)}">${escapeHTML(news.buttonText)}</a>
+    </div>
+
+    ${
+      news.songTitle || news.songCover
+        ? `
+          <div class="home-news-song">
+            <div class="cover-wrap has-preview" ${news.songAudio ? `data-audio="${escapeHTML(news.songAudio)}"` : ""}>
+              ${
+                news.songCover
+                  ? `<img class="cover" src="${escapeHTML(news.songCover)}" alt="${escapeHTML(news.songTitle)} cover">`
+                  : `<div class="cover"></div>`
+              }
+              <button
+                class="preview-button play-button"
+                aria-label="Play preview"
+                data-title="${escapeHTML(news.songTitle)}"
+                data-artist="${escapeHTML(news.songArtist)}"
+                ${news.songAudio ? `data-audio="${escapeHTML(news.songAudio)}"` : ""}
+              >▶</button>
+            </div>
+
+            <div class="home-news-song-info">
+              <h3>${escapeHTML(news.songTitle)}</h3>
+              <p>${escapeHTML(news.songArtist)}</p>
+            </div>
+          </div>
+        `
+        : ""
+    }
+  `;
+
+  if (typeof activateButtons === "function") {
+    activateButtons();
+  }
+}
+
+/* Repair artist/certification/year-end rows after they render. */
+function s16RepairVisibleRows() {
+  const rows = document.querySelectorAll(`
+    .artist-entry,
+    .artist-card,
+    .artist-song-card,
+    .artist-panel article,
+    .certification-card,
+    .year-end-card,
+    .year-end-card-clean,
+    #certificationChart article,
+    #certificationChart > div,
+    #yearEndChart article,
+    #yearEndChart > div
+  `);
+
+  rows.forEach(row => {
+    row.classList.add("s16-visible-row");
+
+    const cover =
+      row.querySelector(".cover-wrap") ||
+      row.querySelector("img.cover")?.parentElement ||
+      row.querySelector(".certification-cover")?.parentElement ||
+      row.querySelector(".year-end-cover")?.parentElement;
+
+    if (cover) {
+      cover.classList.add("cover-wrap");
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    s16ForceHomeNewsBanner();
+    s16RepairVisibleRows();
+
+    if (typeof activateButtons === "function") {
+      activateButtons();
+    }
+  }, 250);
+
+  const s16RepairObserver = new MutationObserver(() => {
+    s16RepairVisibleRows();
+  });
+
+  s16RepairObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+});
