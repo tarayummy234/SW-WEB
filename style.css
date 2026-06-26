@@ -3855,3 +3855,330 @@ body[data-page="certifications"] .summary-grid > div {
     grid-template-columns: 40px 56px minmax(0,1fr) !important;
   }
 }
+
+/* =========================================================
+   SWEET 16 VISIBILITY + IMAGE FRAME FIX
+   Paste at the VERY BOTTOM of style.css
+========================================================= */
+
+/* Card rows must stay visible on artist, certifications, year-end */
+
+.s16-visible-row,
+.artist-entry,
+.artist-card,
+.artist-song-card,
+.artist-panel article,
+.certification-card,
+.year-end-card,
+.year-end-card-clean,
+#certificationChart article,
+#certificationChart > div,
+#yearEndChart article,
+#yearEndChart > div {
+  display: grid !important;
+  grid-template-columns: 48px 68px minmax(0, 1fr) auto !important;
+  gap: 14px !important;
+  align-items: center !important;
+  min-height: 88px !important;
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  background: var(--s16-card-bg, #0b0b0b) !important;
+  color: var(--s16-card-text, #ffffff) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  overflow: visible !important;
+}
+
+/* Do NOT let preview buttons become the whole row */
+
+.s16-visible-row .preview-button,
+.s16-visible-row .play-button,
+.artist-entry .preview-button,
+.artist-entry .play-button,
+.artist-card .preview-button,
+.artist-card .play-button,
+.artist-song-card .preview-button,
+.artist-song-card .play-button,
+.certification-card .preview-button,
+.certification-card .play-button,
+.year-end-card .preview-button,
+.year-end-card .play-button,
+.year-end-card-clean .preview-button,
+.year-end-card-clean .play-button {
+  position: absolute !important;
+}
+
+/* Text must be visible */
+
+.s16-visible-row h3,
+.s16-visible-row p,
+.s16-visible-row a,
+.s16-visible-row span,
+.s16-visible-row strong,
+.artist-entry h3,
+.artist-entry p,
+.artist-entry a,
+.artist-entry span,
+.artist-entry strong,
+.artist-card h3,
+.artist-card p,
+.artist-card a,
+.artist-card span,
+.artist-card strong,
+.artist-song-card h3,
+.artist-song-card p,
+.artist-song-card a,
+.artist-song-card span,
+.artist-song-card strong,
+.certification-card h3,
+.certification-card p,
+.certification-card a,
+.certification-card span,
+.certification-card strong,
+.year-end-card h3,
+.year-end-card p,
+.year-end-card a,
+.year-end-card span,
+.year-end-card strong,
+.year-end-card-clean h3,
+.year-end-card-clean p,
+.year-end-card-clean a,
+.year-end-card-clean span,
+.year-end-card-clean strong {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  color: inherit !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-indent: 0 !important;
+  transform: none !important;
+  clip-path: none !important;
+}
+
+/* Titles */
+
+.s16-visible-row h3,
+.artist-entry h3,
+.artist-card h3,
+.artist-song-card h3,
+.certification-card h3,
+.year-end-card h3,
+.year-end-card-clean h3 {
+  margin: 0 0 4px !important;
+  font-size: 18px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+}
+
+/* Artists/subtext */
+
+.s16-visible-row p,
+.artist-entry p,
+.artist-card p,
+.artist-song-card p,
+.certification-card p,
+.year-end-card p,
+.year-end-card-clean p {
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: rgba(255,255,255,.76) !important;
+}
+
+/* Smooth square covers everywhere */
+
+.cover-wrap,
+.home-preview-card .cover-wrap,
+.home-news .cover-wrap,
+.artist-entry .cover-wrap,
+.artist-card .cover-wrap,
+.artist-song-card .cover-wrap,
+.certification-card .cover-wrap,
+.year-end-card .cover-wrap,
+.year-end-card-clean .cover-wrap {
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  position: relative !important;
+  background: rgba(255,255,255,.08) !important;
+  flex: 0 0 auto !important;
+}
+
+.cover,
+.home-preview-card .cover,
+.home-news .cover,
+.artist-entry .cover,
+.artist-card .cover,
+.artist-song-card .cover,
+.certification-card .cover,
+.certification-cover,
+.year-end-card .cover,
+.year-end-card-clean .cover,
+.year-end-cover {
+  width: 68px !important;
+  height: 68px !important;
+  min-width: 68px !important;
+  min-height: 68px !important;
+  max-width: 68px !important;
+  max-height: 68px !important;
+  object-fit: cover !important;
+  display: block !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+/* If there is no cover image yet, do not collapse the slot */
+
+.cover-wrap:empty,
+.cover:empty {
+  width: 68px !important;
+  height: 68px !important;
+  background: rgba(255,255,255,.08) !important;
+}
+
+/* Sales/chart pages cover fix */
+
+.compact-chart-row .cover-wrap,
+#chart .cover-wrap {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 10px !important;
+}
+
+.compact-chart-row .cover,
+#chart .cover {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  min-height: 58px !important;
+  max-width: 58px !important;
+  max-height: 58px !important;
+  border-radius: 10px !important;
+  object-fit: cover !important;
+}
+
+/* Preview buttons only show on hover or while playing */
+
+.cover-wrap .preview-button,
+.cover-wrap .play-button {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: scale(.92) !important;
+}
+
+.cover-wrap:hover .preview-button,
+.cover-wrap:hover .play-button,
+.cover-wrap .preview-button.is-playing,
+.cover-wrap .play-button.is-playing,
+.cover-wrap .preview-button.is-loading,
+.cover-wrap .play-button.is-loading {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: scale(1) !important;
+}
+
+/* Home news banner force */
+
+.home-news.s16-home-news-fixed,
+#homeNews {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.25fr) minmax(250px, .75fr) !important;
+  gap: 18px !important;
+  padding: 24px !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  margin: 24px auto !important;
+  min-height: 220px !important;
+}
+
+.home-news-copy h2 {
+  margin: 0 0 10px !important;
+  font-size: clamp(32px, 5vw, 62px) !important;
+  line-height: .9 !important;
+}
+
+.home-news-copy p {
+  margin: 0 0 16px !important;
+  max-width: 58ch !important;
+  color: rgba(255,255,255,.82) !important;
+}
+
+.home-news-kicker {
+  display: inline-block !important;
+  margin-bottom: 10px !important;
+  color: var(--s16-accent, #fff) !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+  letter-spacing: .08em !important;
+  font-size: 12px !important;
+}
+
+.home-news-button {
+  display: inline-flex !important;
+  padding: 12px 18px !important;
+  border-radius: 999px !important;
+  background: var(--s16-accent, #fff) !important;
+  color: #000 !important;
+  text-decoration: none !important;
+  font-weight: 900 !important;
+}
+
+.home-news-song {
+  display: grid !important;
+  grid-template-columns: 96px minmax(0,1fr) !important;
+  gap: 14px !important;
+  align-items: center !important;
+  align-self: end !important;
+}
+
+.home-news-song .cover-wrap,
+.home-news-song .cover {
+  width: 96px !important;
+  height: 96px !important;
+  min-width: 96px !important;
+  min-height: 96px !important;
+  max-width: 96px !important;
+  max-height: 96px !important;
+}
+
+.home-news-song-info h3 {
+  margin: 0 0 4px !important;
+  font-size: 20px !important;
+}
+
+.home-news-song-info p {
+  margin: 0 !important;
+  color: rgba(255,255,255,.78) !important;
+}
+
+@media (max-width: 760px) {
+  .home-news.s16-home-news-fixed,
+  #homeNews {
+    grid-template-columns: 1fr !important;
+  }
+
+  .s16-visible-row,
+  .artist-entry,
+  .artist-card,
+  .artist-song-card,
+  .certification-card,
+  .year-end-card,
+  .year-end-card-clean {
+    grid-template-columns: 42px 58px minmax(0,1fr) !important;
+  }
+
+  .cover-wrap,
+  .cover,
+  .certification-cover,
+  .year-end-cover {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    min-height: 58px !important;
+    max-width: 58px !important;
+    max-height: 58px !important;
+  }
+}
